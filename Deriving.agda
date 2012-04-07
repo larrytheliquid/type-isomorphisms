@@ -21,6 +21,9 @@ data U : Set where
   _+'_ _*'_ : U → U → U
   mu' : U → U
 
+bool' : U
+bool' = one' +' one'
+
 nat' : U
 nat' = one' +' rec'
 
@@ -43,6 +46,12 @@ data Mu F where
   [_] : El F (Mu F) → Mu F
 
 --------------------------------------------------------------------------------
+
+true : Mu bool'
+true = [ inl <> ]
+
+false : Mu bool'
+false = [ inr <> ]
 
 zero : Mu nat'
 zero = [ inl <> ]
