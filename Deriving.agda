@@ -58,12 +58,18 @@ node s t = [ inr (s , t) ]
 
 --------------------------------------------------------------------------------
 
-data _==_ {X : Set}(x : X) : X → Set where
-  refl : x == x
+Fin : Mu nat' → Set
+Fin [ inl s ] = Zero
+Fin [ inr t ] = One + Fin t
+
+--------------------------------------------------------------------------------
 
 data Decide (X : Set) : Set where
   yes : X → Decide X
   no : (X → Zero) → Decide X
+
+data _==_ {X : Set}(x : X) : X → Set where
+  refl : x == x
 
 DecEq : Set → Set
 DecEq X = (x y : X) → Decide (x == y)
