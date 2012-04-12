@@ -1,5 +1,7 @@
 module Deriving where
 
+infixr 4 _+'_
+
 data Zero : Set where
 
 record One : Set where constructor <>
@@ -16,10 +18,51 @@ record _*_ (S T : Set) : Set where
 
 --------------------------------------------------------------------------------
 
+data ℕ : Set where
+  zero : ℕ
+  suc  : (n : ℕ) → ℕ
+
+{-# BUILTIN NATURAL ℕ    #-}
+{-# BUILTIN ZERO    zero #-}
+{-# BUILTIN SUC     suc  #-}
+
+-- data Fin : ℕ → Set where
+--   zero : {n : ℕ} → Fin (suc n)
+--   suc  : {n : ℕ} (i : Fin n) → Fin (suc n)
+
+data Vec (A : Set) : ℕ → Set where
+  []  : Vec A zero
+  _∷_ : ∀ {n} (x : A) (xs : Vec A n) → Vec A (suc n)
+
+-- tabulate : ∀ {n} {A : Set} → (Fin n → A) → Vec A n
+-- tabulate {zero}  f = []
+-- tabulate {suc n} f = f zero ∷ tabulate (λ x → f (suc x))
+
+-- allFin : ∀ n → Vec (Fin n) n
+-- allFin _ = tabulate (λ x → x)
+
+--------------------------------------------------------------------------------
+
+data _⊎_ : (S T : Set) → Set₁ where
+  inl : {S T : Set} (s : S) → S ⊎ T
+  inr : {S T : Set} (t : T) → S ⊎ T
+
+-- hm : One ⊎ (One ⊎ One)
+-- hm = inl <>
+
+-- hm : One ⊎ One
+-- hm = inl <>
+
+--------------------------------------------------------------------------------
+
 data U : Set where
   rec' zero' one' : U
   _+'_ _*'_ : U → U → U
   mu' : U → U
+
+fin' : ℕ → U
+fin' zero = zero'
+fin' (suc n) = one' +' fin' n
 
 bool' : U
 bool' = one' +' one'
@@ -27,8 +70,20 @@ bool' = one' +' one'
 nat' : U
 nat' = one' +' rec'
 
+list' : U → U
+list' a' = one' +' (mu' a' *' rec')
+
 natTree' : U
 natTree' = mu' nat' +' (rec' *' rec')
+
+day' : U
+day' = fin' 7
+
+three' : U
+three' = one' +' (one' +' one')
+
+three2' : U
+three2' = (one' +' one') +' one'
 
 --------------------------------------------------------------------------------
 
@@ -47,17 +102,30 @@ data Mu F where
 
 --------------------------------------------------------------------------------
 
+three : Mu three'
+three = [ inl <> ]
+
+three2 : Mu three2'
+three2 = [ inr <> ]
+
 true : Mu bool'
 true = [ inl <> ]
 
 false : Mu bool'
 false = [ inr <> ]
 
-zero : Mu nat'
-zero = [ inl <> ]
+-- cannot use "true" here
+`zero : Mu nat'
+`zero = [ inl <> ]
 
-suc : Mu nat' → Mu nat'
-suc n = [ inr n ]
+`suc : Mu nat' → Mu nat'
+`suc n = [ inr n ]
+
+nil : {a' : U} → Mu (list' a')
+nil = [ inl <> ]
+
+cons : {a' : U} → Mu a' → Mu (list' a') → Mu (list' a')
+cons x xs = [ inr (x , xs) ]
 
 leaf : Mu nat' → Mu natTree'
 leaf n = [ inl n ]
@@ -65,11 +133,54 @@ leaf n = [ inl n ]
 node : Mu natTree' → Mu natTree' → Mu natTree'
 node s t = [ inr (s , t) ]
 
+-- monday : El day' (Mu day')
+-- monday = inl <>
+
+-- tuesday : El day' (Mu day')
+-- tuesday = inr monday
+
+extend : ∀ a' b' → El a' (Mu b') → El a' (Mu (one' +' b'))
+extend rec' b' [ X ] = [ inr (extend b' b' X) ]
+extend zero' b' ()
+extend one' b' X = X
+extend (S +' T) b' (inl s) = inl (extend S b' s)
+extend (S +' T) b' (inr t) = inr (extend T b' t)
+extend (S *' T) b' (s , t) = extend S b' s , extend T b' t
+extend (mu' F) b' X = X
+
+tabulate' : ∀ {n} {A : Set} → (Mu (fin' n) → A) → Vec A n
+tabulate' {zero}  f = []
+tabulate' {suc n} f =
+  f [ inl <> ] ∷ tabulate' (λ { [ X ] → f [ inr (extend (fin' n) _ X) ] })
+
+-- days : ∀ n → Vec (Mu (fin' n)) n
+
+monday : Mu day'
+monday = [ inl <> ]
+
+tuesday : Mu day'
+tuesday = [ inr (inl <>) ]
+
+wednesday : Mu day'
+wednesday = [ inr (inr (inl <>)) ]
+
+thursday : Mu day'
+thursday = [ inr (inr (inr (inl <>))) ]
+
 --------------------------------------------------------------------------------
 
-Fin : Mu nat' → Set
-Fin [ inl s ] = Zero
-Fin [ inr t ] = One + Fin t
+-- Fin : Mu nat' → Set
+-- Fin [ inl s ] = Zero
+-- Fin [ inr t ] = One + Fin t
+
+-- List : (a' : U) → Mu a' → Set
+-- List a' 
+
+-- fin' : Mu nat' → U
+-- fin' [ inl s ] = zero'
+-- fin' [ inr t ] = one' +' fin' t
+
+-- fzero : Mu nat' → Mu fin'
 
 --------------------------------------------------------------------------------
 
