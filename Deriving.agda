@@ -18,28 +18,9 @@ record _*_ (S T : Set) : Set where
 
 --------------------------------------------------------------------------------
 
-data ℕ : Set where
-  zero : ℕ
-  suc  : (n : ℕ) → ℕ
-
-{-# BUILTIN NATURAL ℕ    #-}
-{-# BUILTIN ZERO    zero #-}
-{-# BUILTIN SUC     suc  #-}
-
--- data Fin : ℕ → Set where
---   zero : {n : ℕ} → Fin (suc n)
---   suc  : {n : ℕ} (i : Fin n) → Fin (suc n)
-
-data Vec (A : Set) : ℕ → Set where
-  []  : Vec A zero
-  _∷_ : ∀ {n} (x : A) (xs : Vec A n) → Vec A (suc n)
-
--- tabulate : ∀ {n} {A : Set} → (Fin n → A) → Vec A n
--- tabulate {zero}  f = []
--- tabulate {suc n} f = f zero ∷ tabulate (λ x → f (suc x))
-
--- allFin : ∀ n → Vec (Fin n) n
--- allFin _ = tabulate (λ x → x)
+open import Data.Nat hiding ( _+_ ; _*_ )
+open import Data.Fin hiding ( _+_ )
+open import Data.Vec hiding ( [_] )
 
 --------------------------------------------------------------------------------
 
@@ -153,7 +134,11 @@ tabulate' {zero}  f = []
 tabulate' {suc n} f =
   f [ inl <> ] ∷ tabulate' (λ { [ X ] → f [ inr (extend (fin' n) _ X) ] })
 
--- days : ∀ n → Vec (Mu (fin' n)) n
+all⟦fin'⟧ : ∀ n → Vec (Mu (fin' n)) n
+all⟦fin'⟧ _ = tabulate' (λ x → x)
+
+days : Vec (Mu day') _
+days = all⟦fin'⟧ _
 
 monday : Mu day'
 monday = [ inl <> ]
@@ -164,8 +149,10 @@ tuesday = [ inr (inl <>) ]
 wednesday : Mu day'
 wednesday = [ inr (inr (inl <>)) ]
 
-thursday : Mu day'
-thursday = [ inr (inr (inr (inl <>))) ]
+thursday = lookup (# 3) days
+friday   = lookup (# 4) days
+saturday = lookup (# 5) days
+sunday   = lookup (# 6) days
 
 --------------------------------------------------------------------------------
 
