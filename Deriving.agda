@@ -1,6 +1,7 @@
 module Deriving where
 
 infixr 4 _+'_
+infixr 4 _,_
 
 data Zero : Set where
 
@@ -22,6 +23,9 @@ open import Data.Nat hiding ( _+_ ; _*_ )
 open import Data.Fin hiding ( _+_ )
 open import Data.Vec hiding ( [_] )
 
+data _==_ {X : Set}(x : X) : X → Set where
+  refl : x == x
+
 --------------------------------------------------------------------------------
 
 data _⊎_ : (S T : Set) → Set₁ where
@@ -38,15 +42,25 @@ data _⊎_ : (S T : Set) → Set₁ where
 
 data U : Set where
   rec' zero' one' : U
-  _+'_ _*'_ : U → U → U
-  mu' : U → U
+  _+'_ _*'_ : (S T : U) → U
+  mu' : (F : U) → U
 
 fin' : ℕ → U
 fin' zero = zero'
 fin' (suc n) = one' +' fin' n
 
+ind' : ℕ → U → U
+ind' zero F = one' *' F
+ind' (suc n) F = one' *' ind' n F
+
+two' : U
+two' = fin' 2
+
 bool' : U
-bool' = one' +' one'
+bool' = ind' 0 two'
+
+light' : U
+light' = ind' 1 two'
 
 nat' : U
 nat' = one' +' rec'
@@ -81,6 +95,24 @@ El (mu' F)   X = Mu F
 data Mu F where
   [_] : El F (Mu F) → Mu F
 
+val : ∀ {F} → Mu F → El F (Mu F)
+val [ X ] = X
+
+contract : ∀ F G → El F (Mu (one' *' G)) → El F (Mu G)
+contract rec' G [ _ , x ] = [ contract G G x ]
+contract zero' G ()
+contract one' G x = x
+contract (S +' T) G (inl s) = inl (contract S G s)
+contract (S +' T) G (inr t) = inr (contract T G t)
+contract (S *' T) G (s , t) = contract S G s , contract T G t
+contract (mu' F) G x = x
+
+raw : ∀ {n F} → Mu (ind' n F) → Mu F
+raw {zero} {F} [ _ , f ] = [ contract F _ f ]
+raw {suc n} {F} [ _ , f ] = raw {n} [ contract (ind' n F) _ f ]
+
+-- raw-sound : ∀ n F → Mu F == raw {n} (Mu (ind' n F))
+
 --------------------------------------------------------------------------------
 
 three : Mu three'
@@ -89,11 +121,35 @@ three = [ inl <> ]
 three2 : Mu three2'
 three2 = [ inr <> ]
 
+one : Mu two'
+one = [ inl <> ]
+
+two : Mu two'
+two = [ inr (inl <>) ]
+
 true : Mu bool'
-true = [ inl <> ]
+true = [ _ , val one ]
+
+one==raw[true] : one == raw {0} true
+one==raw[true] = refl
 
 false : Mu bool'
-false = [ inr <> ]
+false = [ _ , val two ]
+
+two==raw[false] : two == raw {0} false
+two==raw[false] = refl
+
+on : Mu light'
+on = [ _ , _ , val one ]
+
+one==raw[on] : one == raw {1} on
+one==raw[on] = refl
+
+off : Mu light'
+off = [ _ , _ , val two ]
+
+two==raw[off] : two == raw {1} off
+two==raw[off] = refl
 
 -- cannot use "true" here
 `zero : Mu nat'
@@ -120,19 +176,19 @@ node s t = [ inr (s , t) ]
 -- tuesday : El day' (Mu day')
 -- tuesday = inr monday
 
-extend : ∀ a' b' → El a' (Mu b') → El a' (Mu (one' +' b'))
-extend rec' b' [ X ] = [ inr (extend b' b' X) ]
-extend zero' b' ()
-extend one' b' X = X
-extend (S +' T) b' (inl s) = inl (extend S b' s)
-extend (S +' T) b' (inr t) = inr (extend T b' t)
-extend (S *' T) b' (s , t) = extend S b' s , extend T b' t
-extend (mu' F) b' X = X
+expand : ∀ a' b' → El a' (Mu b') → El a' (Mu (one' +' b'))
+expand rec' b' [ X ] = [ inr (expand b' b' X) ]
+expand zero' b' ()
+expand one' b' X = X
+expand (S +' T) b' (inl s) = inl (expand S b' s)
+expand (S +' T) b' (inr t) = inr (expand T b' t)
+expand (S *' T) b' (s , t) = expand S b' s , expand T b' t
+expand (mu' F) b' X = X
 
 tabulate' : ∀ {n} {A : Set} → (Mu (fin' n) → A) → Vec A n
 tabulate' {zero}  f = []
 tabulate' {suc n} f =
-  f [ inl <> ] ∷ tabulate' (λ { [ X ] → f [ inr (extend (fin' n) _ X) ] })
+  f [ inl <> ] ∷ tabulate' (λ { [ X ] → f [ inr (expand (fin' n) _ X) ] })
 
 all⟦fin'⟧ : ∀ n → Vec (Mu (fin' n)) n
 all⟦fin'⟧ _ = tabulate' (λ x → x)
@@ -174,9 +230,6 @@ sunday   = lookup (# 6) days
 data Decide (X : Set) : Set where
   yes : X → Decide X
   no : (X → Zero) → Decide X
-
-data _==_ {X : Set}(x : X) : X → Set where
-  refl : x == x
 
 DecEq : Set → Set
 DecEq X = (x y : X) → Decide (x == y)
