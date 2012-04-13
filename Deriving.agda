@@ -98,6 +98,22 @@ data Mu F where
 val : ∀ {F} → Mu F → El F (Mu F)
 val [ X ] = X
 
+extend : ∀ F G → El F (Mu G) → El F (Mu (one' *' G))
+extend rec' G [ x ] = [ _ , extend G G x ]
+extend zero' G ()
+extend one' G x = x
+extend (S +' T) G (inl s) = inl (extend S G s)
+extend (S +' T) G (inr t) = inr (extend T G t)
+extend (S *' T) G (s , t) = extend S G s , extend T G t
+extend (mu' F) G x = x
+
+[from] : ∀ F n → El F (Mu F) → El (ind' n F) (Mu (ind' n F))
+[from] F zero x = _ , extend F _ x
+[from] F (suc n) x = _ , extend (ind' n F) _ ([from] F n x)
+
+_⟨_⟩ : ∀ {F} n → Mu F → Mu (ind' n F)
+n ⟨ x ⟩ = [ [from] _ n (val x) ]
+
 contract : ∀ F G → El F (Mu (one' *' G)) → El F (Mu G)
 contract rec' G [ _ , x ] = [ contract G G x ]
 contract zero' G ()
@@ -113,6 +129,23 @@ raw {suc n} {F} [ _ , f ] = raw {n} [ contract (ind' n F) _ f ]
 
 -- raw-sound : ∀ n F → Mu F == raw {n} (Mu (ind' n F))
 
+expand : ∀ a' b' → El a' (Mu b') → El a' (Mu (one' +' b'))
+expand rec' b' [ X ] = [ inr (expand b' b' X) ]
+expand zero' b' ()
+expand one' b' X = X
+expand (S +' T) b' (inl s) = inl (expand S b' s)
+expand (S +' T) b' (inr t) = inr (expand T b' t)
+expand (S *' T) b' (s , t) = expand S b' s , expand T b' t
+expand (mu' F) b' X = X
+
+tabulate' : ∀ {n} {A : Set} → (Mu (fin' n) → A) → Vec A n
+tabulate' {zero}  f = []
+tabulate' {suc n} f =
+  f [ inl <> ] ∷ tabulate' (λ { [ X ] → f [ inr (expand (fin' n) _ X) ] })
+
+all⟦fin'⟧ : ∀ n → Vec (Mu (fin' n)) n
+all⟦fin'⟧ _ = tabulate' (λ x → x)
+
 --------------------------------------------------------------------------------
 
 three : Mu three'
@@ -127,26 +160,35 @@ one = [ inl <> ]
 two : Mu two'
 two = [ inr (inl <>) ]
 
+twos : Vec (Mu two') _
+twos = all⟦fin'⟧ _
+
+bools : Vec (Mu bool') _
+bools = map (_⟨_⟩ 0) twos
+
+lights : Vec (Mu light') _
+lights = map (_⟨_⟩ 1) twos
+
 true : Mu bool'
-true = [ _ , val one ]
+true = 0 ⟨ lookup (# 0) twos ⟩
 
 one==raw[true] : one == raw {0} true
 one==raw[true] = refl
 
 false : Mu bool'
-false = [ _ , val two ]
+false = 0 ⟨ two ⟩
 
 two==raw[false] : two == raw {0} false
 two==raw[false] = refl
 
 on : Mu light'
-on = [ _ , _ , val one ]
+on = 1 ⟨ one ⟩
 
 one==raw[on] : one == raw {1} on
 one==raw[on] = refl
 
 off : Mu light'
-off = [ _ , _ , val two ]
+off = 1 ⟨ two ⟩
 
 two==raw[off] : two == raw {1} off
 two==raw[off] = refl
@@ -175,23 +217,6 @@ node s t = [ inr (s , t) ]
 
 -- tuesday : El day' (Mu day')
 -- tuesday = inr monday
-
-expand : ∀ a' b' → El a' (Mu b') → El a' (Mu (one' +' b'))
-expand rec' b' [ X ] = [ inr (expand b' b' X) ]
-expand zero' b' ()
-expand one' b' X = X
-expand (S +' T) b' (inl s) = inl (expand S b' s)
-expand (S +' T) b' (inr t) = inr (expand T b' t)
-expand (S *' T) b' (s , t) = expand S b' s , expand T b' t
-expand (mu' F) b' X = X
-
-tabulate' : ∀ {n} {A : Set} → (Mu (fin' n) → A) → Vec A n
-tabulate' {zero}  f = []
-tabulate' {suc n} f =
-  f [ inl <> ] ∷ tabulate' (λ { [ X ] → f [ inr (expand (fin' n) _ X) ] })
-
-all⟦fin'⟧ : ∀ n → Vec (Mu (fin' n)) n
-all⟦fin'⟧ _ = tabulate' (λ x → x)
 
 days : Vec (Mu day') _
 days = all⟦fin'⟧ _
