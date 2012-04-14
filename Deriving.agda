@@ -95,6 +95,18 @@ El (mu' F)   X = Mu F
 data Mu F where
   [_] : El F (Mu F) → Mu F
 
+fmap : ∀ {F X Y} → (X → Y) → El F X → El F Y
+fmap {rec'} f x = f x
+fmap {zero'} f ()
+fmap {one'} f x = x
+fmap {S +' T} f (inl s) = inl (fmap {S} f s)
+fmap {S +' T} f (inr t) = inr (fmap {T} f t)
+fmap {S *' T} f (s , t) = fmap {S} f s , fmap {T} f t
+fmap {mu' F} f x = x
+
+fmapMu : ∀ {F S T} → (Mu S → Mu T) → El F (Mu S) → El F (Mu T)
+fmapMu {F} f x = fmap {F} f x
+
 val : ∀ {F} → Mu F → El F (Mu F)
 val [ X ] = X
 
