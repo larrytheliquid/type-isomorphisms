@@ -45,6 +45,25 @@ data U : Set where
   _+'_ _*'_ : (S T : U) → U
   mu' : (F : U) → U
 
+simplify : U → U
+
+simplify (zero' *' T) = zero'
+simplify (S *' zero') = zero'
+
+simplify (zero' +' T) = T
+simplify (S +' zero') = S
+
+simplify (one' *' T) = T
+simplify (S *' one') = S
+
+simplify ((S +' T) +' U) = S +' (T +' U)
+simplify ((S *' T) *' U) = S *' (T *' U)
+
+-- Probably want this one backwards
+-- simplify (S *' (T +' U)) = (S *' T) +' (S +' U)
+
+simplify F = F
+
 fin' : ℕ → U
 fin' zero = zero'
 fin' (suc n) = one' +' fin' n
@@ -159,6 +178,12 @@ all⟦fin'⟧ : ∀ n → Vec (Mu (fin' n)) n
 all⟦fin'⟧ _ = tabulate' (λ x → x)
 
 --------------------------------------------------------------------------------
+
+foo : El (one' +' one') (Mu (one' +' one'))
+foo = inl _
+
+bar : El (one' +' one' +' one') (Mu (one' +' one' +' one'))
+bar = inr foo
 
 three : Mu three'
 three = [ inl <> ]
