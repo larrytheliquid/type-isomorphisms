@@ -53,14 +53,14 @@ syntax toFin′ F f = f ∶ F
 
 --------------------------------------------------------------------------------
 
-`ThreeL = `1 `+ (`1 `+ `1)
-`ThreeR = (`1 `+ `1) `+ `1
+`ThreeL = (`1 `+ `1) `+ `1
+`ThreeR = `1 `+ (`1 `+ `1)
 
 2:ThreeL : ⟦ `ThreeL ⟧
-2:ThreeL = inj₂ (inj₁ tt)
+2:ThreeL = inj₁ (inj₂ tt)
 
 2:ThreeR : ⟦ `ThreeR ⟧
-2:ThreeR = inj₁ (inj₂ tt)
+2:ThreeR = inj₂ (inj₁ tt)
 
 2:ThreeL≡2:ThreeR : (2:ThreeL ∶ `ThreeL) ≡ (2:ThreeR ∶ `ThreeR)
 2:ThreeL≡2:ThreeR = refl
