@@ -68,5 +68,30 @@ instance Serial XThree where
 testXThree :: XThree -> Bool
 testXThree x = True
 
+--------------------------------------------------------------------------------
+
+data XTwoX = OneX2X | TwoX2X XTwoX XTwoX | ThreeX2X XTwoX XTwoX
+  deriving (Show, Eq)
+
+instance Serial XTwoX where
+  series = cons0 OneX2X
+        \/ cons2 TwoX2X
+        \/ cons2 ThreeX2X
+
+testXTwoX :: XTwoX -> Bool
+testXTwoX x = True
+
+--------------------------------------------------------------------------------
+
+data XThreeX = OneX3X | TwoX3X XThreeX XThreeX XThreeX | ThreeX3X XThreeX XThreeX XThreeX
+  deriving (Show, Eq)
+
+instance Serial XThreeX where
+  series = cons0 OneX3X
+        \/ cons3 TwoX3X
+        \/ cons3 ThreeX3X
+
+testXThreeX :: XThreeX -> Bool
+testXThreeX x = True
 
 
