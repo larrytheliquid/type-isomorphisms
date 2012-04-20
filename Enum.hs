@@ -94,4 +94,44 @@ instance Serial XThreeX where
 testXThreeX :: XThreeX -> Bool
 testXThreeX x = True
 
+--------------------------------------------------------------------------------
 
+data PlusTwoX = One2PX | Two2PX | Three2PX PlusTwoX
+  deriving (Show, Eq)
+
+instance Serial PlusTwoX where
+  series = cons0 One2PX
+        \/ cons0 Two2PX
+        \/ cons1 Three2PX
+
+testPlusTwoX :: PlusTwoX -> Bool
+testPlusTwoX x = True
+
+--------------------------------------------------------------------------------
+
+data PlusThreeX = One3PX | Two3PX | Three3PX | Four3PX PlusThreeX
+  deriving (Show, Eq)
+
+instance Serial PlusThreeX where
+  series = cons0 One3PX
+        \/ cons0 Two3PX
+        \/ cons0 Three3PX
+        \/ cons1 Four3PX
+
+testPlusThreeX :: PlusThreeX -> Bool
+testPlusThreeX x = True
+
+--------------------------------------------------------------------------------
+
+data Foo = OneFoo | TwoFoo | ThreeFoo | FourFoo Foo Foo | FiveFoo Foo Foo
+  deriving (Show, Eq)
+
+instance Serial Foo where
+  series = cons0 OneFoo
+        \/ cons0 TwoFoo
+        \/ cons0 ThreeFoo
+        \/ cons2 FourFoo
+        \/ cons2 FiveFoo
+
+testFoo :: Foo -> Bool
+testFoo x = True

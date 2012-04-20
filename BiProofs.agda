@@ -14,14 +14,14 @@ height (suc n) x χ = χ * height n x χ
 card : ℕ → ℕ → ℕ → ℕ
 card n x χ = pred (χ * height n x χ)
 
-depth : ℕ → ℕ → ℕ → ℕ
-depth χ Χ zero = 1
-depth χ Χ (suc zero) = χ
-depth χ Χ (suc (suc d)) = χ * (Σ[ suc d ]depth ^ Χ ∸ Σ[ d ]depth ^ Χ)
+depth : ℕ → ℕ → ℕ → ℕ → ℕ
+depth x χ Χ zero = x
+depth x χ Χ (suc zero) = χ * (depth x χ Χ 0 ^ 2)
+depth x χ Χ (suc (suc d)) = χ * (Σ[ suc d ]depth ^ Χ ∸ Σ[ d ]depth ^ Χ)
   where
     Σ[_]depth : ℕ → ℕ
-    Σ[ zero ]depth = depth χ Χ 0
-    Σ[ suc d ]depth = depth χ Χ (suc d) + Σ[ d ]depth
+    Σ[ zero ]depth = depth x χ Χ 0
+    Σ[ suc d ]depth = depth x χ Χ (suc d) + Σ[ d ]depth
 
 data Proofs : ℕ → ℕ → Set where
   `0 : Proofs 0 0
