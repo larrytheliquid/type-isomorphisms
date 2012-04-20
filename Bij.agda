@@ -53,8 +53,10 @@ syntax toFin′ F f = f ∶ F
 
 --------------------------------------------------------------------------------
 
-`ThreeL = (`1 `+ `1) `+ `1
-`ThreeR = `1 `+ (`1 `+ `1)
+`Two = `1 `+ `1
+`ThreeL = `Two `+ `1
+`ThreeR = `1 `+ `Two
+`Three = `ThreeL
 
 2:ThreeL : ⟦ `ThreeL ⟧
 2:ThreeL = inj₁ (inj₂ tt)
@@ -62,12 +64,29 @@ syntax toFin′ F f = f ∶ F
 2:ThreeR : ⟦ `ThreeR ⟧
 2:ThreeR = inj₂ (inj₁ tt)
 
-2:ThreeL≡2:ThreeR : (2:ThreeL ∶ `ThreeL) ≡ (2:ThreeR ∶ `ThreeR)
-2:ThreeL≡2:ThreeR = refl
+2:ThreeL≡2:ThreeR : # 1 ≡ (2:ThreeL ∶ `ThreeL)
+                    ×
+                    (2:ThreeL ∶ `ThreeL) ≡ (2:ThreeR ∶ `ThreeR)
+2:ThreeL≡2:ThreeR = refl , refl
 
-postulate
-  toFin-sound : ∀ {n} {S T : Type n} (s : ⟦ S ⟧) (t : ⟦ T ⟧) →
-    (s ∶ S) ≡ (t ∶ T)
+--------------------------------------------------------------------------------
+
+`Six = (`1 `+ `1) `* `Three
+`Six₂ = `Three `+ `Three
+
+5:Six : ⟦ `Six ⟧
+5:Six = inj₂ tt , inj₁ (inj₂ tt)
+
+5:Six₂ : ⟦ `Six₂ ⟧
+5:Six₂ = inj₂ (inj₁ (inj₂ tt))
+
+5:Six≡5:Six₂ : # 4 ≡ (5:Six ∶ `Six)
+              ×
+              (5:Six ∶ `Six) ≡ (5:Six₂ ∶ `Six₂)
+5:Six≡5:Six₂ = refl , refl
+
+--------------------------------------------------------------------------------
+
 
 
 
