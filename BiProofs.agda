@@ -12,7 +12,16 @@ height zero x χ = x
 height (suc n) x χ = χ * height n x χ
 
 card : ℕ → ℕ → ℕ → ℕ
-card n x χ = pred (χ * height n x χ) 
+card n x χ = pred (χ * height n x χ)
+
+summer : ℕ → (ℕ → ℕ) → ℕ
+summer zero f = f 0
+summer (suc n) f = f n + summer n f
+
+depth : ℕ → ℕ → ℕ
+depth m zero = 1
+depth m (suc zero) = 1
+depth m (suc (suc n)) = summer (suc n) (depth m) ^ m ∸ summer n (depth m) ^ m
 
 data Proofs : ℕ → ℕ → Set where
   `0 : Proofs 0 0
