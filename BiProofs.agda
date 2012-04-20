@@ -3,10 +3,13 @@ open import Data.Nat
 
 infixr 6 _`+_
 
+_^_ : ℕ → ℕ → ℕ
+m ^ zero = 1
+m ^ suc n = m * (m ^ n)
+
 height : ℕ → ℕ → ℕ → ℕ
 height zero x χ = x
 height (suc n) x χ = χ * height n x χ
--- height (suc n) x χ = χ * (1 + height n x χ)
 
 card : ℕ → ℕ → ℕ → ℕ
 card n x χ = pred (χ * height n x χ) 
@@ -38,7 +41,6 @@ data Card (h : ℕ) : ℕ → ℕ → Set where
 `nat : Proofs 1 1
 `nat = `1 `+ `x
 
--- ∣nat∣ : Card 4 1 5
 ∣nat∣ : Card 4 1 1
 ∣nat∣ = ∣ `nat ∣
 
