@@ -14,14 +14,14 @@ height (suc n) x χ = χ * height n x χ
 card : ℕ → ℕ → ℕ → ℕ
 card n x χ = pred (χ * height n x χ)
 
-summer : ℕ → (ℕ → ℕ) → ℕ
-summer zero f = f 0
-summer (suc n) f = f n + summer n f
-
 depth : ℕ → ℕ → ℕ
-depth m zero = 1
-depth m (suc zero) = 1
-depth m (suc (suc n)) = summer (suc n) (depth m) ^ m ∸ summer n (depth m) ^ m
+depth Χ zero = 1
+depth Χ (suc zero) = 1
+depth Χ (suc (suc d)) = Σ[ suc d ]depth ^ Χ ∸ Σ[ d ]depth ^ Χ
+  where
+    Σ[_]depth : ℕ → ℕ
+    Σ[ zero ]depth = depth Χ 0
+    Σ[ suc d ]depth = depth Χ (suc d) + Σ[ d ]depth
 
 data Proofs : ℕ → ℕ → Set where
   `0 : Proofs 0 0
