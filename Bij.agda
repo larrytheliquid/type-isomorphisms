@@ -49,7 +49,7 @@ toFin {.(x * y)} {_`*_ {x} {y} S T} (a , b)
 toFin′ : ∀ {n} (F : Type n) → ⟦ F ⟧ → Fin n
 toFin′ F ⟦F⟧ = toFin {F = F} ⟦F⟧
 
-syntax toFin′ F ⟦F⟧ = ⟦F⟧ ∶ F
+syntax toFin′ F f = f ∶ F
 
 --------------------------------------------------------------------------------
 
@@ -64,6 +64,11 @@ syntax toFin′ F ⟦F⟧ = ⟦F⟧ ∶ F
 
 2:ThreeL≡2:ThreeR : (2:ThreeL ∶ `ThreeL) ≡ (2:ThreeR ∶ `ThreeR)
 2:ThreeL≡2:ThreeR = refl
+
+postulate
+  toFin-sound : ∀ {n} {S T : Type n} (s : ⟦ S ⟧) (t : ⟦ T ⟧) →
+    (s ∶ S) ≡ (t ∶ T)
+
 
 
 
