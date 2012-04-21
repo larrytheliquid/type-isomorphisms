@@ -2,11 +2,12 @@ module Bij where
 open import Data.Empty
 open import Data.Unit
 open import Data.Nat
-open import Data.Sum
-open import Data.Product
+open import Data.Sum hiding ( map )
+open import Data.Product hiding ( map )
 open import Data.Fin hiding ( _+_ ; lift ; inject )
 open import Data.Vec hiding ( concat ; [_] )
 open import Relation.Binary.PropositionalEquality
+open import Function
 
 concat : ∀ {m n} → Fin m → Fin n → Fin (m * n)
 concat {zero} {n} () j
@@ -26,7 +27,7 @@ split zero n ()
 split (suc m) zero i = zero , proj₂ (split m zero i)
 split (suc m) (suc n) zero = zero , zero
 split (suc m) (suc n) (suc i) with case n (m * suc n) i
-... | (inj₁ j) = zero , suc j -- TODO maybe zero
+... | (inj₁ j) = zero , suc j
 ... | (inj₂ k) with split m (suc n) k
 ... | (x , y) = suc x , y
 
@@ -90,8 +91,18 @@ lift : ∀ {m n} {S T : Type m} {U V : Type n} →
 lift {m} {n} {S} {T} {U} {V} f t =
   inject V ∣ f (inject S ∣ t ∣) ∣
 
-⟨_⟩ :  ∀ {n} {S T : Type n} → ⟦ S ⟧ → ⟦ T ⟧
+⟪_⟫ : ∀ {m n} {S T : Type m} {U V : Type n} →
+  (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
+⟪_⟫ = lift
+
+⟨_⟩ : ∀ {n} {S T : Type n} → ⟦ S ⟧ → ⟦ T ⟧
 ⟨_⟩ {S = S} s = lift (λ (x : ⟦ S ⟧) → x) s
+
+enum : ∀ {n} (F : Type n) → Vec ⟦ F ⟧ n
+enum = tabulate ∘ inject
+
+fins : ∀ {n} (F : Type n) → Vec (Fin n) n
+fins = map toFin ∘ enum
 
 --------------------------------------------------------------------------------
 
@@ -120,7 +131,7 @@ on : Light
 on = [ (tt , inj₂ tt) ]
 
 switch : Light → Light
-switch = lift neg
+switch = ⟪ neg ⟫
 
 --------------------------------------------------------------------------------
 
