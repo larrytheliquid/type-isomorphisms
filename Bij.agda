@@ -4,7 +4,7 @@ open import Data.Unit
 open import Data.Nat
 open import Data.Sum
 open import Data.Product
-open import Data.Fin hiding ( _+_ ; lift )
+open import Data.Fin hiding ( _+_ ; lift ; inject )
 open import Data.Vec hiding ( concat ; [_] )
 open import Relation.Binary.PropositionalEquality
 
@@ -74,21 +74,21 @@ toFin {.(x * y)} {_`*_ {x} {y} S T} [ a , b ]
 ⟨_⟩ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ⟨_⟩ = toFin
 
-fromFin : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
-fromFin {.0} `0 ()
-fromFin {.1} `1 i = [ tt ]
-fromFin {.(x + y)} (_`+_ {x} {y} S T) i
+inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
+inject {.0} `0 ()
+inject {.1} `1 i = [ tt ]
+inject {.(x + y)} (_`+_ {x} {y} S T) i
   with case x y i
-... | inj₁ j = [ inj₁ (proj (fromFin S j)) ]
-... | inj₂ k = [ inj₂ (proj (fromFin T k)) ]
-fromFin {.(x * y)} (_`*_ {x} {y} S T) i
+... | inj₁ j = [ inj₁ (proj (inject S j)) ]
+... | inj₂ k = [ inj₂ (proj (inject T k)) ]
+inject {.(x * y)} (_`*_ {x} {y} S T) i
   with split x y i
-... | j , k = [ (proj (fromFin S j) , proj (fromFin T k)) ]
+... | j , k = [ (proj (inject S j) , proj (inject T k)) ]
 
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
 lift {m} {n} {S} {T} {U} {V} f t =
-  fromFin V (toFin (f (fromFin S (toFin t))))
+  inject V ⟨ f (inject S ⟨ t ⟩) ⟩
 
 --------------------------------------------------------------------------------
 
