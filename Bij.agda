@@ -139,10 +139,14 @@ ThreeR = ⟦ `ThreeR ⟧
 2:ThreeR′ : ThreeR
 2:ThreeR′ = ⟨ 2:ThreeL ⟩
 
-2:ThreeL≡2:ThreeR : # 1 ≡ ∣ 2:ThreeL ∣
-                    ×
-                    ∣ 2:ThreeL ∣ ≡ ∣ 2:ThreeR ∣
-2:ThreeL≡2:ThreeR = refl , refl
+∣2:ThreeL∣≡#2 : ∣ 2:ThreeL ∣ ≡ # 1
+∣2:ThreeL∣≡#2 = refl
+
+2:ThreeL≡⟨2:ThreeR⟩ : 2:ThreeL ≡ ⟨ 2:ThreeR ⟩
+2:ThreeL≡⟨2:ThreeR⟩ = refl
+
+⟨2:ThreeL⟩≡2:ThreeR : ⟨ 2:ThreeL ⟩ ≡ 2:ThreeR
+⟨2:ThreeL⟩≡2:ThreeR = refl
 
 --------------------------------------------------------------------------------
 
@@ -155,10 +159,11 @@ ThreeR = ⟦ `ThreeR ⟧
 5:Six₂ : ⟦ `Six₂ ⟧
 5:Six₂ = [ inj₂ (inj₁ (inj₂ tt)) ]
 
-5:Six≡5:Six₂ : # 4 ≡ ∣ 5:Six ∣
-               ×
-               ∣ 5:Six ∣ ≡ ∣ 5:Six₂ ∣
-5:Six≡5:Six₂ = refl , refl
+∣5:Six∣≡#4 : ∣ 5:Six ∣ ≡ # 4
+∣5:Six∣≡#4 = refl
+
+5:Six≡⟨5:Six₂⟩ : 5:Six ≡ ⟨ 5:Six₂ ⟩
+5:Six≡⟨5:Six₂⟩ = refl
 
 --------------------------------------------------------------------------------
 
