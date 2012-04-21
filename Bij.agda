@@ -71,8 +71,8 @@ toFin {.(x * y)} {_`*_ {x} {y} S T} [ a , b ]
   with toFin {x} {S} [ a ] | toFin {y} {T} [ b ]
 ... | ih₁ | ih₂ = concat ih₁ ih₂
 
-⟨_⟩ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
-⟨_⟩ = toFin
+∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
+∣_∣ = toFin
 
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
 inject {.0} `0 ()
@@ -88,7 +88,10 @@ inject {.(x * y)} (_`*_ {x} {y} S T) i
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
 lift {m} {n} {S} {T} {U} {V} f t =
-  inject V ⟨ f (inject S ⟨ t ⟩) ⟩
+  inject V ∣ f (inject S ∣ t ∣) ∣
+
+⟨_⟩ :  ∀ {n} {S T : Type n} → ⟦ S ⟧ → ⟦ T ⟧
+⟨_⟩ {S = S} s = lift (λ (x : ⟦ S ⟧) → x) s
 
 --------------------------------------------------------------------------------
 
@@ -134,9 +137,11 @@ ThreeR = ⟦ `ThreeR ⟧
 2:ThreeR = [ inj₂ (inj₁ tt) ]
 
 2:ThreeR′ : ThreeR
-2:ThreeR′ = lift (λ (x : ThreeR) → x) 2:ThreeL
+2:ThreeR′ = ⟨ 2:ThreeL ⟩
 
-2:ThreeL≡2:ThreeR : # 1 ≡ ⟨ 2:ThreeL ⟩ × ⟨ 2:ThreeL ⟩ ≡ ⟨ 2:ThreeR ⟩
+2:ThreeL≡2:ThreeR : # 1 ≡ ∣ 2:ThreeL ∣
+                    ×
+                    ∣ 2:ThreeL ∣ ≡ ∣ 2:ThreeR ∣
 2:ThreeL≡2:ThreeR = refl , refl
 
 --------------------------------------------------------------------------------
@@ -150,7 +155,9 @@ ThreeR = ⟦ `ThreeR ⟧
 5:Six₂ : ⟦ `Six₂ ⟧
 5:Six₂ = [ inj₂ (inj₁ (inj₂ tt)) ]
 
-5:Six≡5:Six₂ : # 4 ≡ ⟨ 5:Six ⟩ × ⟨ 5:Six ⟩ ≡ ⟨ 5:Six₂ ⟩
+5:Six≡5:Six₂ : # 4 ≡ ∣ 5:Six ∣
+               ×
+               ∣ 5:Six ∣ ≡ ∣ 5:Six₂ ∣
 5:Six≡5:Six₂ = refl , refl
 
 --------------------------------------------------------------------------------
