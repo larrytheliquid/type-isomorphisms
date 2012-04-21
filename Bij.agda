@@ -13,9 +13,21 @@ concat {suc m} {zero} zero ()
 concat {suc m} {suc n} zero j = inject+ (m * suc n) j
 concat {suc m} {n} (suc i) j = raise n (concat i j)
 
-postulate
-  case : ∀ m n → Fin (m + n) → Fin m ⊎ Fin n
-  split : ∀ m n → Fin (m * n) → Fin m × Fin n
+case : ∀ m n → Fin (m + n) → Fin m ⊎ Fin n
+case zero n i = inj₂ i
+case (suc m) n zero = inj₁ zero
+case (suc m) n (suc i) with case m n i
+... | (inj₁ j) = inj₁ (suc j)
+... | (inj₂ k) = inj₂ k
+
+split : ∀ m n → Fin (m * n) → Fin m × Fin n
+split zero n ()
+split (suc m) zero i = zero , proj₂ (split m zero i)
+split (suc m) (suc n) zero = zero , zero
+split (suc m) (suc n) (suc i) with case n (m * suc n) i
+... | (inj₁ j) = zero , suc j -- TODO maybe zero
+... | (inj₂ k) with split m (suc n) k
+... | (x , y) = suc x , y
 
 --------------------------------------------------------------------------------
 
