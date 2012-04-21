@@ -13,6 +13,10 @@ concat {suc m} {zero} zero ()
 concat {suc m} {suc n} zero j = inject+ (m * suc n) j
 concat {suc m} {n} (suc i) j = raise n (concat i j)
 
+postulate
+  case : ∀ m n → Fin (m + n) → Fin m ⊎ Fin n
+  split : ∀ m n → Fin (m * n) → Fin m × Fin n
+
 --------------------------------------------------------------------------------
 
 infix 5 [_]
@@ -38,6 +42,9 @@ El (S `* T) = El S × El T
 data ⟦_⟧ {n} (F : Type n) : Set where
   [_] : El F → ⟦ F ⟧
 
+proj : ∀ {n} {F : Type n} → ⟦ F ⟧ → El F
+proj [ x ] = x
+
 toFin : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 toFin {.0} {`0} [ () ]
 toFin {.1} {`1} [ tt ] = zero
@@ -53,6 +60,17 @@ toFin {.(x * y)} {_`*_ {x} {y} S T} [ a , b ]
 
 ⟨_⟩ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ⟨_⟩ = toFin
+
+fromFin : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
+fromFin {.0} `0 ()
+fromFin {.1} `1 i = [ tt ]
+fromFin {.(x + y)} (_`+_ {x} {y} S T) i
+  with case x y i
+... | inj₁ j = [ inj₁ (proj (fromFin S j)) ]
+... | inj₂ k = [ inj₂ (proj (fromFin T k)) ]
+fromFin {.(x * y)} (_`*_ {x} {y} S T) i
+  with split x y i
+... | j , k = [ (proj (fromFin S j) , proj (fromFin T k)) ]
 
 --------------------------------------------------------------------------------
 
