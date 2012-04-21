@@ -4,7 +4,8 @@ open import Data.Unit
 open import Data.Nat
 open import Data.Sum
 open import Data.Product
-open import Data.Fin hiding ( _+_ )
+open import Data.Fin hiding ( _+_ ; lift )
+open import Data.Vec hiding ( concat ; [_] )
 open import Relation.Binary.PropositionalEquality
 
 concat : ∀ {m n} → Fin m → Fin n → Fin (m * n)
@@ -84,11 +85,44 @@ fromFin {.(x * y)} (_`*_ {x} {y} S T) i
   with split x y i
 ... | j , k = [ (proj (fromFin S j) , proj (fromFin T k)) ]
 
+lift : ∀ {m n} {S T : Type m} {U V : Type n} →
+  (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
+lift {m} {n} {S} {T} {U} {V} f t =
+  fromFin V (toFin (f (fromFin S (toFin t))))
+
 --------------------------------------------------------------------------------
 
-`Two = `1 `+ `1
-`ThreeL = `Two `+ `1
-`ThreeR = `1 `+ `Two
+`Bool = `1 `+ `1
+Bool = ⟦ `Bool ⟧
+
+false : Bool
+false = [ inj₁ tt ]
+
+true : Bool
+true = [ inj₂ tt ]
+
+neg : Bool → Bool
+neg [ inj₁ tt ] = true
+neg [ inj₂ tt ] = false
+
+--------------------------------------------------------------------------------
+
+`Light = `1 `* (`1 `+ `1)
+Light = ⟦ `Light ⟧
+
+off : Light
+off = [ (tt , inj₁ tt) ]
+
+on : Light
+on = [ (tt , inj₂ tt) ]
+
+switch : Light → Light
+switch = lift neg
+
+--------------------------------------------------------------------------------
+
+`ThreeL = (`1 `+ `1) `+ `1
+`ThreeR = `1 `+ (`1 `+ `1)
 `Three = `ThreeL
 
 2:ThreeL : ⟦ `ThreeL ⟧
