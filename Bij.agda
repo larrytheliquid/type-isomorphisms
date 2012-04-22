@@ -1,12 +1,16 @@
 module Bij where
 open import Data.Empty
-open import Data.Unit
-open import Data.Nat
+open import Data.Unit hiding ( _≟_ )
+open import Data.Nat hiding ( _≟_ )
 open import Data.Sum hiding ( map )
 open import Data.Product hiding ( map )
 open import Data.Fin hiding ( _+_ ; lift ; inject )
+open import Data.Fin.Props
 open import Data.Vec hiding ( concat ; [_] )
+open import Relation.Nullary
+open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.PreorderReasoning
 open import Function
 
 concat : ∀ {m n} → Fin m → Fin n → Fin (m * n)
@@ -75,6 +79,20 @@ toFin {.(x * y)} {_`*_ {x} {y} S T} [ a , b ]
 ∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ∣_∣ = toFin
 
+raise-case : ∀ m n → (i : Fin (suc n)) →
+  case m (suc n) (raise m i) ≡ inj₂ i
+raise-case zero n i = refl
+raise-case (suc m) n i with raise-case m n i
+... | ih rewrite ih = refl
+
+inject-case : ∀ m n → (i : Fin (suc m)) →
+  case (suc m) n (inject+ n i) ≡ inj₁ i
+inject-case zero n zero = refl
+inject-case zero n (suc ())
+inject-case (suc m) n zero = refl
+inject-case (suc m) n (suc i) with inject-case m n i
+... | ih rewrite ih = refl
+
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
 inject {.0} `0 ()
 inject {.1} `1 i = [ tt ]
@@ -101,8 +119,56 @@ lift {m} {n} {S} {T} {U} {V} f t =
 enum : ∀ {n} (F : Type n) → Vec ⟦ F ⟧ n
 enum = tabulate ∘ inject
 
-fins : ∀ {n} (F : Type n) → Vec (Fin n) n
-fins = map toFin ∘ enum
+fins : ∀ {n} (F : Type n) → Vec ℕ n
+fins = map (toℕ ∘ toFin) ∘ enum
+
+--------------------------------------------------------------------------------
+
+x+y≡0 : ∀ x y → x + y ≡ 0 → x ≡ 0 × y ≡ 0
+x+y≡0 zero y p = refl , p
+x+y≡0 (suc x) y ()
+
+x*y≡0 : ∀ x y → x * y ≡ 0 → x ≡ 0 ⊎ y ≡ 0
+x*y≡0 zero y p = inj₁ refl
+x*y≡0 (suc x) zero p = inj₂ refl
+x*y≡0 (suc x) (suc y) ()
+
+⟦Type0⟧⇒⊥ : ∀ {n} {S : Type n} → n ≡ 0 → ⟦ S ⟧ → ⊥
+⟦Type0⟧⇒⊥ {.0} {`0} p [ () ]
+⟦Type0⟧⇒⊥ {.1} {`1} () [ s ]
+⟦Type0⟧⇒⊥ {.(x + y)} {_`+_ {x} {y} S T} p [ (inj₁ a) ]
+  with x+y≡0 x y p
+... | px , py = ⟦Type0⟧⇒⊥ {S = S} px [ a ]
+⟦Type0⟧⇒⊥ {.(x + y)} {_`+_ {x} {y} S T} p [ (inj₂ b) ]
+  with x+y≡0 x y p
+... | px , py = ⟦Type0⟧⇒⊥ {S = T} py [ b ]
+⟦Type0⟧⇒⊥ {.(x * y)} {_`*_ {x} {y} S T} p [ (a , b) ]
+  with x*y≡0 x y p
+... | inj₁ px = ⟦Type0⟧⇒⊥ {S = S} px [ a ]
+... | inj₂ py = ⟦Type0⟧⇒⊥ {S = T} py [ b ]
+
+bijection₁ : ∀ {n} {S : Type n} (s : ⟦ S ⟧) → inject S (toFin s) ≡ s
+bijection₁ {.0} {`0} [ () ]
+bijection₁ {.1} {`1} [ tt ] = refl
+
+bijection₁ {.y} {_`+_ {zero} {y} S T} [ inj₁ a ] =
+  ⊥-elim $ ⟦Type0⟧⇒⊥ {S = S} refl [ a ]
+
+bijection₁ {.(suc (x + y))} {_`+_ {suc x} {y} S T} [ inj₁ a ]
+  with toFin {F = S} [ a ] | bijection₁ {S = S} [ a ]
+... | zero | ih rewrite ih = refl
+... | suc i | ih with inject-case x y (suc i)
+... | p rewrite p | ih = refl
+
+bijection₁ {.(x + 0)} {_`+_ {x} {zero} S T} [ inj₂ b ] =
+  ⊥-elim $ ⟦Type0⟧⇒⊥ {S = T} refl [ b ]
+
+bijection₁ {.(x + suc y)} {_`+_ {x} {suc y} S T} [ inj₂ b ]
+  with toFin {F = T} [ b ] | bijection₁ {S = T} [ b ]
+... | i | ih with raise-case x y i
+... | p rewrite p | ih = refl
+
+bijection₁ {.(x * y)} {_`*_ {x} {y} S T} [ s ] = {!!}
 
 --------------------------------------------------------------------------------
 
