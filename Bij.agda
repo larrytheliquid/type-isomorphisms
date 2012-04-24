@@ -16,7 +16,7 @@ open import Function
 concat : ∀ {m n} → Fin m → Fin n → Fin (m * n)
 concat {zero} {n} () j
 concat {suc m} {zero} zero ()
-concat {suc m} {suc n} zero j = inject+ (m * suc n) j
+concat {suc m} {suc n} zero j = inject+ _ j
 concat {suc m} {n} (suc i) j = raise n (concat i j)
 
 case : ∀ {m} {n} → Fin (m + n) → Fin m ⊎ Fin n
@@ -106,7 +106,7 @@ case-inject n (suc i) with case-inject n i
 -- -- split-concat₁ .(suc m) n (suc {m} i) j = {!!}
 
 postulate
-  split-concat : ∀ m n → (i : Fin m) (j : Fin n) →
+  split-concat : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
     split (concat i j) ≡ (i , j)
 
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
@@ -150,8 +150,8 @@ bijection₁ {S = _`+_ {x = x} S T} [ inj₂ b ]
   with case-raise x (toFin b) | bijection₁ b
 ... | p | ih rewrite p | ih = refl
 
-bijection₁ {S = _`*_ {x} {y} S T} [ (a , b) ]
-  with split-concat x y (toFin a) (toFin b) |
+bijection₁ {S = S `* T} [ (a , b) ]
+  with split-concat (toFin a) (toFin b) |
        bijection₁ a | bijection₁ b
 ... | p | ih₁ | ih₂ rewrite p | ih₁ | ih₂ = refl
 
