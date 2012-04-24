@@ -19,22 +19,28 @@ concat {suc m} {zero} zero ()
 concat {suc m} {suc n} zero j = inject+ (m * suc n) j
 concat {suc m} {n} (suc i) j = raise n (concat i j)
 
-case : ∀ m n → Fin (m + n) → Fin m ⊎ Fin n
-case zero n i = inj₂ i
-case (suc m) n zero = inj₁ zero
-case (suc m) n (suc i) with case m n i
+case′ : ∀ m n → Fin (m + n) → Fin m ⊎ Fin n
+case′ zero n i = inj₂ i
+case′ (suc m) n zero = inj₁ zero
+case′ (suc m) n (suc i) with case′ m n i
 ... | (inj₁ j) = inj₁ (suc j)
 ... | (inj₂ k) = inj₂ k
 
-split : ∀ m n → Fin (m * n) → Fin m × Fin n
-split zero n ()
+case : ∀ {m} {n} → Fin (m + n) → Fin m ⊎ Fin n
+case = case′ _ _
+
+split′ : ∀ m n → Fin (m * n) → Fin m × Fin n
+split′ zero n ()
 -- TODO Fin (suc m) * 0 should be ⊥
-split (suc m) zero i = zero , proj₂ (split m zero i)
-split (suc m) (suc n) zero = zero , zero
-split (suc m) (suc n) (suc i) with case n (m * suc n) i
+split′ (suc m) zero i = zero , proj₂ (split′ m zero i)
+split′ (suc m) (suc n) zero = zero , zero
+split′ (suc m) (suc n) (suc i) with case i
 ... | (inj₁ j) = zero , suc j
-... | (inj₂ k) with split m (suc n) k
+... | (inj₂ k) with split′ m (suc n) k
 ... | (x , y) = suc x , y
+
+split : ∀ {m} {n} → Fin (m * n) → Fin m × Fin n
+split = split′ _ _
 
 --------------------------------------------------------------------------------
 
@@ -53,79 +59,73 @@ data Type : ℕ → Set where
     Type (x * y)
 
 El : ∀ {n} → Type n → Set
+data ⟦_⟧ {n} (F : Type n) : Set
+
 El `0 = ⊥
 El `1 = ⊤
-El (S `+ T) = El S ⊎ El T
-El (S `* T) = El S × El T
+El (S `+ T) = ⟦ S ⟧ ⊎ ⟦ T ⟧
+El (S `* T) = ⟦ S ⟧ × ⟦ T ⟧
 
-data ⟦_⟧ {n} (F : Type n) : Set where
+data ⟦_⟧ {n} F where
   [_] : El F → ⟦ F ⟧
 
-proj : ∀ {n} {F : Type n} → ⟦ F ⟧ → El F
-proj [ x ] = x
+toFin′ : ∀ {n} (F : Type n) → ⟦ F ⟧ → Fin n
+toFin′ `0 [ () ]
+toFin′ `1 [ tt ] = zero
+toFin′ (S `+ T) [ inj₁ a ] = inject+ _ (toFin′ S a)
+toFin′ (_`+_ {x = x} S T) [ inj₂ b ] = raise x (toFin′ T b)
+toFin′ (S `* T) [ a , b ] = concat (toFin′ S a) (toFin′ T b)
 
 toFin : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
-toFin {.0} {`0} [ () ]
-toFin {.1} {`1} [ tt ] = zero
-toFin {.(x + y)} {_`+_ {x} {y} S T} [ inj₁ a ]
-  with toFin {x} {S} [ a ]
-... | ih = inject+ y ih
-toFin {.(x + y)} {_`+_ {x} {y} S T} [ inj₂ b ]
-  with toFin {y} {T} [ b ]
-... | ih = raise x ih
-toFin {.(x * y)} {_`*_ {x} {y} S T} [ a , b ]
-  with toFin {x} {S} [ a ] | toFin {y} {T} [ b ]
-... | ih₁ | ih₂ = concat ih₁ ih₂
+toFin = toFin′ _
 
 ∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ∣_∣ = toFin
 
 case-raise : ∀ {n} m → (i : Fin n) →
-  case m n (raise m i) ≡ inj₂ i
+  case {m = m} (raise m i) ≡ inj₂ i
 case-raise zero i = refl
 case-raise (suc m) i with case-raise m i
 ... | ih rewrite ih = refl
 
 case-inject : ∀ {m} n → (i : Fin m) →
-  case m n (inject+ n i) ≡ inj₁ i
+  case (inject+ n i) ≡ inj₁ i
 case-inject n zero = refl
 case-inject n (suc i) with case-inject n i
 ... | ih rewrite ih = refl
 
--- split-concat₁ : ∀ m n → (i : Fin (suc m)) (j : Fin (suc n)) →
---   proj₁ (split (suc m) (suc n) (concat i j)) ≡ i
--- split-concat₁ m n zero zero = refl
--- split-concat₁ m n zero (suc i) with split-concat₁ _ _ zero i
--- ... | ih = ?
--- split-concat₁ m n (suc i) j = {!!}
+-- -- split-concat₁ : ∀ m n → (i : Fin (suc m)) (j : Fin (suc n)) →
+-- --   proj₁ (split (suc m) (suc n) (concat i j)) ≡ i
+-- -- split-concat₁ m n zero zero = refl
+-- -- split-concat₁ m n zero (suc i) with split-concat₁ _ _ zero i
+-- -- ... | ih = ?
+-- -- split-concat₁ m n (suc i) j = {!!}
 
--- split-concat₁ : ∀ m n → (i : Fin m) (j : Fin n) →
---   proj₁ (split m n (concat i j)) ≡ i
--- split-concat₁ .(suc m) zero (zero {m}) ()
--- split-concat₁ .(suc m) (suc n) (zero {m}) j
---   -- TODO could we split j and use ih here instead?
---   with inject+ (m * suc n) j
--- ... | zero = refl
--- ... | suc ij with case n (m * suc n) ij
--- ... | inj₁ ij₁ = refl
--- ... | inj₂ ij₂ with split m (suc n) ij₂
--- ... | x , y = {!-d !}
--- split-concat₁ .(suc m) n (suc {m} i) j = {!!}
+-- -- split-concat₁ : ∀ m n → (i : Fin m) (j : Fin n) →
+-- --   proj₁ (split m n (concat i j)) ≡ i
+-- -- split-concat₁ .(suc m) zero (zero {m}) ()
+-- -- split-concat₁ .(suc m) (suc n) (zero {m}) j
+-- --   -- TODO could we split j and use ih here instead?
+-- --   with inject+ (m * suc n) j
+-- -- ... | zero = refl
+-- -- ... | suc ij with case n (m * suc n) ij
+-- -- ... | inj₁ ij₁ = refl
+-- -- ... | inj₂ ij₂ with split m (suc n) ij₂
+-- -- ... | x , y = {!-d !}
+-- -- split-concat₁ .(suc m) n (suc {m} i) j = {!!}
 
 postulate
   split-concat : ∀ m n → (i : Fin m) (j : Fin n) →
-    split m n (concat i j) ≡ (i , j)
+    split (concat i j) ≡ (i , j)
 
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
-inject {.0} `0 ()
-inject {.1} `1 i = [ tt ]
-inject {.(x + y)} (_`+_ {x} {y} S T) i
-  with case x y i
-... | inj₁ j = [ inj₁ (proj (inject S j)) ]
-... | inj₂ k = [ inj₂ (proj (inject T k)) ]
-inject {.(x * y)} (_`*_ {x} {y} S T) i
-  with split x y i
-... | j , k = [ (proj (inject S j) , proj (inject T k)) ]
+inject `0 ()
+inject `1 i = [ tt ]
+inject (S `+ T) i with case i
+... | inj₁ j = [ inj₁ (inject S j) ]
+... | inj₂ k = [ inj₂ (inject T k) ]
+inject (S `* T) i with split i
+... | j , k = [ (inject S j , inject T k) ]
 
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
@@ -152,20 +152,17 @@ bijection₁ {S = `0} [ () ]
 bijection₁ {S = `1} [ tt ] = refl
 
 bijection₁ {S = _`+_ {y = y} S T} [ inj₁ a ]
-  with case-inject y (toFin {F = S} [ a ])
-  |    bijection₁ {S = S} [ a ]
+  with case-inject y (toFin a) | bijection₁ a
 ... | p | ih rewrite p | ih = refl
 
 bijection₁ {S = _`+_ {x = x} S T} [ inj₂ b ]
-  with case-raise x (toFin {F = T} [ b ])
-  |    bijection₁ {S = T} [ b ]
+  with case-raise x (toFin b) | bijection₁ b
 ... | p | ih rewrite p | ih = refl
 
 bijection₁ {S = _`*_ {x} {y} S T} [ (a , b) ]
-  with toFin {F = S} [ a ] | toFin {F = T} [ b ] | 
-       bijection₁ {S = S} [ a ] | bijection₁ {S = T} [ b ]
-... | i | j | ih₁ | ih₂ with split-concat x y i j
-... | p rewrite p | ih₁ | ih₂ = refl
+  with split-concat x y (toFin a) (toFin b) |
+       bijection₁ a | bijection₁ b
+... | p | ih₁ | ih₂ rewrite p | ih₁ | ih₂ = refl
 
 --------------------------------------------------------------------------------
 
@@ -173,14 +170,14 @@ bijection₁ {S = _`*_ {x} {y} S T} [ (a , b) ]
 Bool = ⟦ `Bool ⟧
 
 false : Bool
-false = [ inj₁ tt ]
+false = [ inj₁ [ tt ] ]
 
 true : Bool
-true = [ inj₂ tt ]
+true = [ inj₂ [ tt ] ]
 
 neg : Bool → Bool
-neg [ inj₁ tt ] = true
-neg [ inj₂ tt ] = false
+neg [ inj₁ [ tt ] ] = true
+neg [ inj₂ [ tt ] ] = false
 
 --------------------------------------------------------------------------------
 
@@ -188,10 +185,10 @@ neg [ inj₂ tt ] = false
 Light = ⟦ `Light ⟧
 
 off : Light
-off = [ (tt , inj₁ tt) ]
+off = [ ([ tt ] , [ inj₁ [ tt ] ]) ]
 
 on : Light
-on = [ (tt , inj₂ tt) ]
+on = [ ([ tt ] , [ inj₂ [ tt ] ]) ]
 
 switch : Light → Light
 switch = ⟪ neg ⟫
@@ -205,10 +202,10 @@ ThreeR = ⟦ `ThreeR ⟧
 `Three = `ThreeL
 
 2:ThreeL : ThreeL
-2:ThreeL = [ inj₁ (inj₂ tt) ]
+2:ThreeL = [ inj₁ [ inj₂ [ tt ] ] ]
 
 2:ThreeR : ThreeR
-2:ThreeR = [ inj₂ (inj₁ tt) ]
+2:ThreeR = [ inj₂ [ inj₁ [ tt ] ] ]
 
 2:ThreeR′ : ThreeR
 2:ThreeR′ = ⟨ 2:ThreeL ⟩
@@ -228,10 +225,10 @@ ThreeR = ⟦ `ThreeR ⟧
 `Six₂ = `Three `+ `Three
 
 5:Six : ⟦ `Six ⟧
-5:Six = [ (inj₂ tt , inj₁ (inj₂ tt)) ]
+5:Six = [ ([ inj₂ [ tt ] ] , [ inj₁ [ inj₂ [ tt ] ] ]) ]
 
 5:Six₂ : ⟦ `Six₂ ⟧
-5:Six₂ = [ inj₂ (inj₁ (inj₂ tt)) ]
+5:Six₂ = [ inj₂ [ inj₁ [ inj₂ [ tt ] ] ] ]
 
 ∣5:Six∣≡#4 : ∣ 5:Six ∣ ≡ # 4
 ∣5:Six∣≡#4 = refl
