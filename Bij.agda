@@ -148,18 +148,18 @@ fins = map (toℕ ∘ toFin) ∘ enum
 --------------------------------------------------------------------------------
 
 bijection₁ : ∀ {n} {S : Type n} (s : ⟦ S ⟧) → inject S (toFin s) ≡ s
-bijection₁ {.0} {`0} [ () ]
-bijection₁ {.1} {`1} [ tt ] = refl
+bijection₁ {S = `0} [ () ]
+bijection₁ {S = `1} [ tt ] = refl
 
 bijection₁ {S = _`+_ {y = y} S T} [ inj₁ a ]
-  with toFin {F = S} [ a ] | bijection₁ {S = S} [ a ]
-... | i | ih with case-inject y i
-... | p rewrite p | ih = refl
+  with case-inject y (toFin {F = S} [ a ])
+  |    bijection₁ {S = S} [ a ]
+... | p | ih rewrite p | ih = refl
 
 bijection₁ {S = _`+_ {x = x} S T} [ inj₂ b ]
-  with toFin {F = T} [ b ] | bijection₁ {S = T} [ b ]
-... | i | ih with case-raise x i
-... | p rewrite p | ih = refl
+  with case-raise x (toFin {F = T} [ b ])
+  |    bijection₁ {S = T} [ b ]
+... | p | ih rewrite p | ih = refl
 
 bijection₁ {S = _`*_ {x} {y} S T} [ (a , b) ]
   with toFin {F = S} [ a ] | toFin {F = T} [ b ] | 
