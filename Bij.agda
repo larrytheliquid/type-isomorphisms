@@ -19,28 +19,22 @@ concat {suc m} {zero} zero ()
 concat {suc m} {suc n} zero j = inject+ (m * suc n) j
 concat {suc m} {n} (suc i) j = raise n (concat i j)
 
-case′ : ∀ m n → Fin (m + n) → Fin m ⊎ Fin n
-case′ zero n i = inj₂ i
-case′ (suc m) n zero = inj₁ zero
-case′ (suc m) n (suc i) with case′ m n i
+case : ∀ {m} {n} → Fin (m + n) → Fin m ⊎ Fin n
+case {zero} {n} i = inj₂ i
+case {suc m} {n} zero = inj₁ zero
+case {suc m} {n} (suc i) with case i
 ... | (inj₁ j) = inj₁ (suc j)
 ... | (inj₂ k) = inj₂ k
 
-case : ∀ {m} {n} → Fin (m + n) → Fin m ⊎ Fin n
-case = case′ _ _
-
-split′ : ∀ m n → Fin (m * n) → Fin m × Fin n
-split′ zero n ()
--- TODO Fin (suc m) * 0 should be ⊥
-split′ (suc m) zero i = zero , proj₂ (split′ m zero i)
-split′ (suc m) (suc n) zero = zero , zero
-split′ (suc m) (suc n) (suc i) with case i
-... | (inj₁ j) = zero , suc j
-... | (inj₂ k) with split′ m (suc n) k
-... | (x , y) = suc x , y
-
 split : ∀ {m} {n} → Fin (m * n) → Fin m × Fin n
-split = split′ _ _
+split {zero} {n} ()
+-- TODO Fin (suc m) * 0 should be ⊥
+split {suc m} {zero} i = zero , proj₂ (split {m} i)
+split {suc m} {suc n} zero = zero , zero
+split {suc m} {suc n} (suc i) with case i
+... | (inj₁ j) = zero , suc j
+... | (inj₂ k) with split k
+... | (x , y) = suc x , y
 
 --------------------------------------------------------------------------------
 
@@ -69,15 +63,12 @@ El (S `* T) = ⟦ S ⟧ × ⟦ T ⟧
 data ⟦_⟧ {n} F where
   [_] : El F → ⟦ F ⟧
 
-toFin′ : ∀ {n} (F : Type n) → ⟦ F ⟧ → Fin n
-toFin′ `0 [ () ]
-toFin′ `1 [ tt ] = zero
-toFin′ (S `+ T) [ inj₁ a ] = inject+ _ (toFin′ S a)
-toFin′ (_`+_ {x = x} S T) [ inj₂ b ] = raise x (toFin′ T b)
-toFin′ (S `* T) [ a , b ] = concat (toFin′ S a) (toFin′ T b)
-
 toFin : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
-toFin = toFin′ _
+toFin {F = `0} [ () ]
+toFin {F = `1} [ tt ] = zero
+toFin {F = S `+ T} [ inj₁ a ] = inject+ _ (toFin a)
+toFin {F = _`+_ {x = x} S T} [ inj₂ b ] = raise x (toFin b)
+toFin {F = S `* T} [ a , b ] = concat (toFin a) (toFin b)
 
 ∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ∣_∣ = toFin
