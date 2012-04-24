@@ -28,6 +28,7 @@ case (suc m) n (suc i) with case m n i
 
 split : ∀ m n → Fin (m * n) → Fin m × Fin n
 split zero n ()
+-- TODO Fin (suc m) * 0 should be ⊥
 split (suc m) zero i = zero , proj₂ (split m zero i)
 split (suc m) (suc n) zero = zero , zero
 split (suc m) (suc n) (suc i) with case n (m * suc n) i
@@ -79,19 +80,41 @@ toFin {.(x * y)} {_`*_ {x} {y} S T} [ a , b ]
 ∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ∣_∣ = toFin
 
-raise-case : ∀ m n → (i : Fin (suc n)) →
-  case m (suc n) (raise m i) ≡ inj₂ i
-raise-case zero n i = refl
-raise-case (suc m) n i with raise-case m n i
+case-raise : ∀ {n} m → (i : Fin n) →
+  case m n (raise m i) ≡ inj₂ i
+case-raise zero i = refl
+case-raise (suc m) i with case-raise m i
 ... | ih rewrite ih = refl
 
-inject-case : ∀ m n → (i : Fin (suc m)) →
-  case (suc m) n (inject+ n i) ≡ inj₁ i
-inject-case zero n zero = refl
-inject-case zero n (suc ())
-inject-case (suc m) n zero = refl
-inject-case (suc m) n (suc i) with inject-case m n i
+case-inject : ∀ {m} n → (i : Fin m) →
+  case m n (inject+ n i) ≡ inj₁ i
+case-inject n zero = refl
+case-inject n (suc i) with case-inject n i
 ... | ih rewrite ih = refl
+
+-- split-concat₁ : ∀ m n → (i : Fin (suc m)) (j : Fin (suc n)) →
+--   proj₁ (split (suc m) (suc n) (concat i j)) ≡ i
+-- split-concat₁ m n zero zero = refl
+-- split-concat₁ m n zero (suc i) with split-concat₁ _ _ zero i
+-- ... | ih = ?
+-- split-concat₁ m n (suc i) j = {!!}
+
+-- split-concat₁ : ∀ m n → (i : Fin m) (j : Fin n) →
+--   proj₁ (split m n (concat i j)) ≡ i
+-- split-concat₁ .(suc m) zero (zero {m}) ()
+-- split-concat₁ .(suc m) (suc n) (zero {m}) j
+--   -- TODO could we split j and use ih here instead?
+--   with inject+ (m * suc n) j
+-- ... | zero = refl
+-- ... | suc ij with case n (m * suc n) ij
+-- ... | inj₁ ij₁ = refl
+-- ... | inj₂ ij₂ with split m (suc n) ij₂
+-- ... | x , y = {!-d !}
+-- split-concat₁ .(suc m) n (suc {m} i) j = {!!}
+
+postulate
+  split-concat : ∀ m n → (i : Fin m) (j : Fin n) →
+    split m n (concat i j) ≡ (i , j)
 
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
 inject {.0} `0 ()
@@ -124,51 +147,25 @@ fins = map (toℕ ∘ toFin) ∘ enum
 
 --------------------------------------------------------------------------------
 
-x+y≡0 : ∀ x y → x + y ≡ 0 → x ≡ 0 × y ≡ 0
-x+y≡0 zero y p = refl , p
-x+y≡0 (suc x) y ()
-
-x*y≡0 : ∀ x y → x * y ≡ 0 → x ≡ 0 ⊎ y ≡ 0
-x*y≡0 zero y p = inj₁ refl
-x*y≡0 (suc x) zero p = inj₂ refl
-x*y≡0 (suc x) (suc y) ()
-
-⟦Type0⟧⇒⊥ : ∀ {n} {S : Type n} → n ≡ 0 → ⟦ S ⟧ → ⊥
-⟦Type0⟧⇒⊥ {.0} {`0} p [ () ]
-⟦Type0⟧⇒⊥ {.1} {`1} () [ s ]
-⟦Type0⟧⇒⊥ {.(x + y)} {_`+_ {x} {y} S T} p [ (inj₁ a) ]
-  with x+y≡0 x y p
-... | px , py = ⟦Type0⟧⇒⊥ {S = S} px [ a ]
-⟦Type0⟧⇒⊥ {.(x + y)} {_`+_ {x} {y} S T} p [ (inj₂ b) ]
-  with x+y≡0 x y p
-... | px , py = ⟦Type0⟧⇒⊥ {S = T} py [ b ]
-⟦Type0⟧⇒⊥ {.(x * y)} {_`*_ {x} {y} S T} p [ (a , b) ]
-  with x*y≡0 x y p
-... | inj₁ px = ⟦Type0⟧⇒⊥ {S = S} px [ a ]
-... | inj₂ py = ⟦Type0⟧⇒⊥ {S = T} py [ b ]
-
 bijection₁ : ∀ {n} {S : Type n} (s : ⟦ S ⟧) → inject S (toFin s) ≡ s
 bijection₁ {.0} {`0} [ () ]
 bijection₁ {.1} {`1} [ tt ] = refl
 
-bijection₁ {.y} {_`+_ {zero} {y} S T} [ inj₁ a ] =
-  ⊥-elim $ ⟦Type0⟧⇒⊥ {S = S} refl [ a ]
-
-bijection₁ {.(suc (x + y))} {_`+_ {suc x} {y} S T} [ inj₁ a ]
+bijection₁ {S = _`+_ {y = y} S T} [ inj₁ a ]
   with toFin {F = S} [ a ] | bijection₁ {S = S} [ a ]
-... | zero | ih rewrite ih = refl
-... | suc i | ih with inject-case x y (suc i)
+... | i | ih with case-inject y i
 ... | p rewrite p | ih = refl
 
-bijection₁ {.(x + 0)} {_`+_ {x} {zero} S T} [ inj₂ b ] =
-  ⊥-elim $ ⟦Type0⟧⇒⊥ {S = T} refl [ b ]
-
-bijection₁ {.(x + suc y)} {_`+_ {x} {suc y} S T} [ inj₂ b ]
+bijection₁ {S = _`+_ {x = x} S T} [ inj₂ b ]
   with toFin {F = T} [ b ] | bijection₁ {S = T} [ b ]
-... | i | ih with raise-case x y i
+... | i | ih with case-raise x i
 ... | p rewrite p | ih = refl
 
-bijection₁ {.(x * y)} {_`*_ {x} {y} S T} [ s ] = {!!}
+bijection₁ {S = _`*_ {x} {y} S T} [ (a , b) ]
+  with toFin {F = S} [ a ] | toFin {F = T} [ b ] | 
+       bijection₁ {S = S} [ a ] | bijection₁ {S = T} [ b ]
+... | i | j | ih₁ | ih₂ with split-concat x y i j
+... | p rewrite p | ih₁ | ih₂ = refl
 
 --------------------------------------------------------------------------------
 
