@@ -26,6 +26,24 @@ case {suc m} {n} (suc i) with case i
 ... | (inj₁ j) = inj₁ (suc j)
 ... | (inj₂ k) = inj₂ k
 
+split₁ : ∀ {m} {n} → Fin (m * n) → Fin m
+split₁ {zero} {n} ()
+-- TODO Fin (suc m) * 0 should be ⊥
+split₁ {suc m} {zero} i = zero
+split₁ {suc m} {suc n} zero = zero
+split₁ {suc m} {suc n} (suc i) with case {n} {m * suc n} i
+... | (inj₁ j) = zero
+... | (inj₂ k) = suc (split₁ k)
+
+split₂ : ∀ {m} {n} → Fin (m * n) → Fin n
+split₂ {zero} {n} ()
+-- TODO Fin (suc m) * 0 should be ⊥
+split₂ {suc m} {zero} i = split₂ {m} i
+split₂ {suc m} {suc n} zero = zero
+split₂ {suc m} {suc n} (suc i) with case i
+... | (inj₁ j) = suc j
+... | (inj₂ k) = split₂ {m} k
+
 split : ∀ {m} {n} → Fin (m * n) → Fin m × Fin n
 split {zero} {n} ()
 -- TODO Fin (suc m) * 0 should be ⊥
@@ -85,25 +103,22 @@ case-inject n zero = refl
 case-inject n (suc i) with case-inject n i
 ... | ih rewrite ih = refl
 
--- -- split-concat₁ : ∀ m n → (i : Fin (suc m)) (j : Fin (suc n)) →
--- --   proj₁ (split (suc m) (suc n) (concat i j)) ≡ i
--- -- split-concat₁ m n zero zero = refl
--- -- split-concat₁ m n zero (suc i) with split-concat₁ _ _ zero i
--- -- ... | ih = ?
--- -- split-concat₁ m n (suc i) j = {!!}
+postulate
+  split-concat₁ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
+    split₁ (concat i j) ≡ i
 
--- -- split-concat₁ : ∀ m n → (i : Fin m) (j : Fin n) →
--- --   proj₁ (split m n (concat i j)) ≡ i
--- -- split-concat₁ .(suc m) zero (zero {m}) ()
--- -- split-concat₁ .(suc m) (suc n) (zero {m}) j
--- --   -- TODO could we split j and use ih here instead?
--- --   with inject+ (m * suc n) j
--- -- ... | zero = refl
--- -- ... | suc ij with case n (m * suc n) ij
--- -- ... | inj₁ ij₁ = refl
--- -- ... | inj₂ ij₂ with split m (suc n) ij₂
--- -- ... | x , y = {!-d !}
--- -- split-concat₁ .(suc m) n (suc {m} i) j = {!!}
+split-concat₂ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
+  split₂ {m} (concat i j) ≡ j
+split-concat₂ {suc m} {zero} zero ()
+split-concat₂ {suc m} {suc n} zero zero = refl
+split-concat₂ {suc m} {suc n} zero (suc i)
+  with case-inject (m * suc n) i
+... | p rewrite p = refl
+split-concat₂ {zero} () j
+split-concat₂ {suc m} {zero} (suc i) ()
+split-concat₂ {suc m} {suc n} (suc i) j
+  with case-raise n (concat i j)
+... | p rewrite p = split-concat₂ i j
 
 postulate
   split-concat : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
