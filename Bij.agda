@@ -103,9 +103,18 @@ case-inject n zero = refl
 case-inject n (suc i) with case-inject n i
 ... | ih rewrite ih = refl
 
-postulate
-  split-concat₁ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
-    split₁ (concat i j) ≡ i
+split-concat₁ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
+  split₁ (concat i j) ≡ i
+split-concat₁ {suc m} {zero} zero ()
+split-concat₁ {suc m} {suc n} zero zero = refl
+split-concat₁ {suc m} {suc n} zero (suc i)
+  with case-inject (m * suc n) i
+... | p rewrite p = refl
+split-concat₁ {zero} () j
+split-concat₁ {suc m} {zero} (suc i) ()
+split-concat₁ {suc m} {suc n} (suc i) j
+  with case-raise n (concat i j) | split-concat₁ i j
+... | p | ih rewrite p | ih = refl
 
 split-concat₂ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
   split₂ {m} (concat i j) ≡ j
