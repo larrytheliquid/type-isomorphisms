@@ -26,24 +26,6 @@ case {suc m} {n} (suc i) with case i
 ... | (inj₁ j) = inj₁ (suc j)
 ... | (inj₂ k) = inj₂ k
 
-split₁ : ∀ {m} {n} → Fin (m * n) → Fin m
-split₁ {zero} {n} ()
--- TODO Fin (suc m) * 0 should be ⊥
-split₁ {suc m} {zero} i = zero
-split₁ {suc m} {suc n} zero = zero
-split₁ {suc m} {suc n} (suc i) with case {n} {m * suc n} i
-... | (inj₁ j) = zero
-... | (inj₂ k) = suc (split₁ k)
-
-split₂ : ∀ {m} {n} → Fin (m * n) → Fin n
-split₂ {zero} {n} ()
--- TODO Fin (suc m) * 0 should be ⊥
-split₂ {suc m} {zero} i = split₂ {m} i
-split₂ {suc m} {suc n} zero = zero
-split₂ {suc m} {suc n} (suc i) with case i
-... | (inj₁ j) = suc j
-... | (inj₂ k) = split₂ {m} k
-
 split : ∀ {m} {n} → Fin (m * n) → Fin m × Fin n
 split {zero} {n} ()
 -- TODO Fin (suc m) * 0 should be ⊥
@@ -91,48 +73,6 @@ toFin {F = S `* T} [ a , b ] = concat (toFin a) (toFin b)
 ∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
 ∣_∣ = toFin
 
-case-raise : ∀ {n} m → (i : Fin n) →
-  case {m = m} (raise m i) ≡ inj₂ i
-case-raise zero i = refl
-case-raise (suc m) i with case-raise m i
-... | ih rewrite ih = refl
-
-case-inject : ∀ {m} n → (i : Fin m) →
-  case (inject+ n i) ≡ inj₁ i
-case-inject n zero = refl
-case-inject n (suc i) with case-inject n i
-... | ih rewrite ih = refl
-
-split-concat₁ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
-  split₁ (concat i j) ≡ i
-split-concat₁ {suc m} {zero} zero ()
-split-concat₁ {suc m} {suc n} zero zero = refl
-split-concat₁ {suc m} {suc n} zero (suc i)
-  with case-inject (m * suc n) i
-... | p rewrite p = refl
-split-concat₁ {zero} () j
-split-concat₁ {suc m} {zero} (suc i) ()
-split-concat₁ {suc m} {suc n} (suc i) j
-  with case-raise n (concat i j) | split-concat₁ i j
-... | p | ih rewrite p | ih = refl
-
-split-concat₂ : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
-  split₂ {m} (concat i j) ≡ j
-split-concat₂ {suc m} {zero} zero ()
-split-concat₂ {suc m} {suc n} zero zero = refl
-split-concat₂ {suc m} {suc n} zero (suc i)
-  with case-inject (m * suc n) i
-... | p rewrite p = refl
-split-concat₂ {zero} () j
-split-concat₂ {suc m} {zero} (suc i) ()
-split-concat₂ {suc m} {suc n} (suc i) j
-  with case-raise n (concat i j)
-... | p rewrite p = split-concat₂ i j
-
-postulate
-  split-concat : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
-    split (concat i j) ≡ (i , j)
-
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
 inject `0 ()
 inject `1 i = [ tt ]
@@ -161,6 +101,31 @@ fins : ∀ {n} (F : Type n) → Vec ℕ n
 fins = map (toℕ ∘ toFin) ∘ enum
 
 --------------------------------------------------------------------------------
+
+case-raise : ∀ {n} m → (i : Fin n) →
+  case {m = m} (raise m i) ≡ inj₂ i
+case-raise zero i = refl
+case-raise (suc m) i with case-raise m i
+... | ih rewrite ih = refl
+
+case-inject : ∀ {m} n → (i : Fin m) →
+  case (inject+ n i) ≡ inj₁ i
+case-inject n zero = refl
+case-inject n (suc i) with case-inject n i
+... | ih rewrite ih = refl
+
+split-concat : ∀ {m} {n} → (i : Fin m) (j : Fin n) →
+  split (concat i j) ≡ (i , j)
+split-concat {suc m} {zero} zero ()
+split-concat {suc m} {suc n} zero zero = refl
+split-concat {suc m} {suc n} zero (suc i)
+  with case-inject (m * suc n) i
+... | p rewrite p = refl
+split-concat {zero} () j
+split-concat {suc m} {zero} (suc i) ()
+split-concat {suc m} {suc n} (suc i) j
+  with case-raise n (concat i j) | split-concat i j
+... | p | ih rewrite p | ih = refl
 
 bijection₁ : ∀ {n} {S : Type n} (s : ⟦ S ⟧) → inject S (toFin s) ≡ s
 bijection₁ {S = `0} [ () ]
