@@ -155,6 +155,13 @@ s ≟⟨⟩ t = s ≟ ⟨ t ⟩
 _⟨⟩≟_ : ∀ {n} {S T : Type n} (s : ⟦ S ⟧) (t : ⟦ T ⟧) → Dec (⟨ s ⟩ ≡ t)
 s ⟨⟩≟ t = ⟨ s ⟩ ≟ t
 
+x≡⟨x⟩ : ∀ {n} {F : Type n} (x : ⟦ F ⟧) → x ≡ ⟨ x ⟩
+x≡⟨x⟩ x with bijection₁ x
+... | p rewrite p | p = refl
+
+⟨x⟩≡x : ∀ {n} {F : Type n} (x : ⟦ F ⟧) → ⟨ x ⟩ ≡ x
+⟨x⟩≡x = sym ∘ x≡⟨x⟩
+
 ValueOrdering : ∀ {n} {F : Type n} → (S T : ⟦ F ⟧) → Set
 ValueOrdering S T = Ordering ∣ S ∣ ∣ T ∣
 
