@@ -1,7 +1,7 @@
 module Bij where
 open import Data.Empty
 open import Data.Unit hiding ( _≟_ )
-open import Data.Nat hiding ( _≟_ )
+open import Data.Nat hiding ( _≟_ ; Ordering )
 open import Data.Sum hiding ( map )
 open import Data.Product hiding ( map )
 open import Data.Fin hiding ( _+_ ; lift ; inject )
@@ -138,8 +138,7 @@ bijection₁ {S = _`+_ {x = x} S T} [ inj₂ b ]
   with case-raise x (toFin b) | bijection₁ b
 ... | p | ih rewrite p | ih = refl
 bijection₁ {S = S `* T} [ (a , b) ]
-  with split-concat (toFin a) (toFin b) |
-       bijection₁ a | bijection₁ b
+  with split-concat (toFin a) (toFin b) | bijection₁ a | bijection₁ b
 ... | p | ih₁ | ih₂ rewrite p | ih₁ | ih₂ = refl
 
 --------------------------------------------------------------------------------
@@ -149,6 +148,15 @@ _≟_ {F = F} x y  with toFin x ≟f toFin y
 ... | no p = no (p ∘ cong toFin)
 ... | yes p with bijection₁ x | bijection₁ y | cong (inject F) p
 ... | a | b | c rewrite a | b = yes c
+
+_≟⟨⟩_ : ∀ {n} {S T : Type n} (s : ⟦ S ⟧) (t : ⟦ T ⟧) → Dec (s ≡ ⟨ t ⟩)
+s ≟⟨⟩ t = s ≟ ⟨ t ⟩
+
+_⟨⟩≟_ : ∀ {n} {S T : Type n} (s : ⟦ S ⟧) (t : ⟦ T ⟧) → Dec (⟨ s ⟩ ≡ t)
+s ⟨⟩≟ t = ⟨ s ⟩ ≟ t
+
+ValueOrdering : ∀ {n} {F : Type n} → (S T : ⟦ F ⟧) → Set
+ValueOrdering S T = Ordering ∣ S ∣ ∣ T ∣
 
 --------------------------------------------------------------------------------
 
