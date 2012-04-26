@@ -5,7 +5,7 @@ open import Data.Nat hiding ( _≟_ )
 open import Data.Sum hiding ( map )
 open import Data.Product hiding ( map )
 open import Data.Fin hiding ( _+_ ; lift ; inject )
-open import Data.Fin.Props
+open import Data.Fin.Props renaming ( _≟_ to _≟f_ )
 open import Data.Vec hiding ( concat ; [_] )
 open import Relation.Nullary
 open import Relation.Binary
@@ -82,6 +82,7 @@ inject (S `+ T) i with case i
 inject (S `* T) i with split i
 ... | j , k = [ (inject S j , inject T k) ]
 
+-- TODO this is like cong, also like fmap but no F
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
 lift {m} {n} {S} {T} {U} {V} f t =
@@ -130,19 +131,24 @@ split-concat {suc m} {suc n} (suc i) j
 bijection₁ : ∀ {n} {S : Type n} (s : ⟦ S ⟧) → inject S (toFin s) ≡ s
 bijection₁ {S = `0} [ () ]
 bijection₁ {S = `1} [ tt ] = refl
-
 bijection₁ {S = _`+_ {y = y} S T} [ inj₁ a ]
   with case-inject y (toFin a) | bijection₁ a
 ... | p | ih rewrite p | ih = refl
-
 bijection₁ {S = _`+_ {x = x} S T} [ inj₂ b ]
   with case-raise x (toFin b) | bijection₁ b
 ... | p | ih rewrite p | ih = refl
-
 bijection₁ {S = S `* T} [ (a , b) ]
   with split-concat (toFin a) (toFin b) |
        bijection₁ a | bijection₁ b
 ... | p | ih₁ | ih₂ rewrite p | ih₁ | ih₂ = refl
+
+--------------------------------------------------------------------------------
+
+_≟_ : ∀ {n} {F : Type n} → Decidable {A = ⟦ F ⟧} _≡_
+_≟_ {F = F} x y  with toFin x ≟f toFin y
+... | no p = no (p ∘ cong toFin)
+... | yes p with bijection₁ x | bijection₁ y | cong (inject F) p
+... | a | b | c rewrite a | b = yes c
 
 --------------------------------------------------------------------------------
 
