@@ -1,6 +1,6 @@
 module Bij where
 open import Data.Empty
-open import Data.Unit hiding ( _≟_ )
+open import Data.Unit hiding ( _≟_ ; _≤?_ )
 open import Data.Nat hiding ( _≟_ ; Ordering )
 open import Data.Sum hiding ( map )
 open import Data.Product hiding ( map )
@@ -8,6 +8,7 @@ open import Data.Fin hiding ( _+_ ; lift ; inject )
 open import Data.Fin.Props renaming ( _≟_ to _≟f_ )
 open import Data.Vec hiding ( concat ; [_] )
 open import Relation.Nullary
+open import Relation.Nullary.Decidable hiding ( map )
 open import Relation.Binary
 open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.PreorderReasoning
@@ -70,9 +71,6 @@ toFin {F = S `+ T} [ inj₁ a ] = inject+ _ (toFin a)
 toFin {F = _`+_ {x = x} S T} [ inj₂ b ] = raise x (toFin b)
 toFin {F = S `* T} [ a , b ] = concat (toFin a) (toFin b)
 
-∣_∣ : ∀ {n} {F : Type n} → ⟦ F ⟧ → Fin n
-∣_∣ = toFin
-
 inject : ∀ {n} (F : Type n) → Fin n → ⟦ F ⟧
 inject `0 ()
 inject `1 i = [ tt ]
@@ -86,7 +84,7 @@ inject (S `* T) i with split i
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
 lift {m} {n} {S} {T} {U} {V} f t =
-  inject V ∣ f (inject S ∣ t ∣) ∣
+  inject V (toFin (f (inject S (toFin t))))
 
 ⟪_⟫ : ∀ {m n} {S T : Type m} {U V : Type n} →
   (⟦ S ⟧ → ⟦ U ⟧) → ⟦ T ⟧ → ⟦ V ⟧
@@ -163,7 +161,7 @@ x≡⟨x⟩ x with bijection₁ x
 ⟨x⟩≡x = sym ∘ x≡⟨x⟩
 
 ValueOrdering : ∀ {n} {F : Type n} → (S T : ⟦ F ⟧) → Set
-ValueOrdering S T = Ordering ∣ S ∣ ∣ T ∣
+ValueOrdering S T = Ordering (toFin S) (toFin T)
 
 --------------------------------------------------------------------------------
 
@@ -211,7 +209,7 @@ ThreeR = ⟦ `ThreeR ⟧
 2:ThreeR′ : ThreeR
 2:ThreeR′ = ⟨ 2:ThreeL ⟩
 
-∣2:ThreeL∣≡#2 : ∣ 2:ThreeL ∣ ≡ # 1
+∣2:ThreeL∣≡#2 : (toFin 2:ThreeL) ≡ # 1
 ∣2:ThreeL∣≡#2 = refl
 
 2:ThreeL≡⟨2:ThreeR⟩ : 2:ThreeL ≡ ⟨ 2:ThreeR ⟩
@@ -231,7 +229,7 @@ ThreeR = ⟦ `ThreeR ⟧
 5:Six₂ : ⟦ `Six₂ ⟧
 5:Six₂ = [ inj₂ [ inj₁ [ inj₂ [ tt ] ] ] ]
 
-∣5:Six∣≡#4 : ∣ 5:Six ∣ ≡ # 4
+∣5:Six∣≡#4 : (toFin 5:Six) ≡ # 4
 ∣5:Six∣≡#4 = refl
 
 5:Six≡⟨5:Six₂⟩ : 5:Six ≡ ⟨ 5:Six₂ ⟩
@@ -239,3 +237,20 @@ ThreeR = ⟦ `ThreeR ⟧
 
 --------------------------------------------------------------------------------
 
+∣_∣ :  ∀ {m n} (i : Fin m) {m<n : True (suc (toℕ i) ≤? n)} → Fin n
+∣_∣ i {m<n = m<n} = #_ (toℕ i) {m<n = m<n}
+
+`2 = `1 `+ `1
+`3 = `1 `+ `2
+
+one : Fin 3
+one = # 0
+
+two : Fin 3
+two = suc ∣ one ∣
+
+five : Fin 5
+five = # 3
+
+hm : Fin 3
+hm = reduce≥ five (s≤s (s≤s z≤n))
