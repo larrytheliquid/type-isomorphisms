@@ -237,20 +237,17 @@ ThreeR = ⟦ `ThreeR ⟧
 
 --------------------------------------------------------------------------------
 
-∣_∣ :  ∀ {m n} (i : Fin m) {m<n : True (suc (toℕ i) ≤? n)} → Fin n
-∣_∣ i {m<n = m<n} = #_ (toℕ i) {m<n = m<n}
+∣_∣ :  ∀ {m n} {A : Type m} {B : Type n} (a : ⟦ A ⟧)
+  {p : True (suc (toℕ (toFin a)) ≤? n)} → ⟦ B ⟧
+∣_∣ a {p = p} = inject _ (#_ (toℕ (toFin a)) {m<n = p})
 
 `2 = `1 `+ `1
 `3 = `1 `+ `2
 
-one : Fin 3
-one = # 0
+one : ⟦ `3 ⟧
+one = [ inj₁ [ tt ] ]
 
-two : Fin 3
-two = suc ∣ one ∣
+two : ⟦ `3 ⟧
+two = [ inj₂ ∣ one ∣ ]
 
-five : Fin 5
-five = # 3
 
-hm : Fin 3
-hm = reduce≥ five (s≤s (s≤s z≤n))
