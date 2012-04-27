@@ -1,9 +1,11 @@
 module Syntax where
 open import Data.Empty
 open import Data.Unit
+open import Data.Bool
 open import Data.Sum
 open import Data.Product
 open import Data.Maybe
+open import Relation.Nullary.Decidable
 open import Relation.Binary.PropositionalEquality
 
 infix 1 _∶_
@@ -64,12 +66,19 @@ s , t as S `* T with s as S | t as T
 ... | _ | _ = nothing
 s , t as _ = nothing
 
+toWit : {P : Set} {Q : Maybe P} → T (maybeToBool Q) → P
+toWit {Q = just p} _  = p
+toWit {Q = nothing} ()
+
 inject : ∀ {S T : Type} (s : ⟦ S ⟧) → val s ∶ T → ⟦ T ⟧
 inject {`0} [ () ] p
 inject {`1} [ tt ] tt = [ tt ]
 inject {S `+ T} [ inj₁ s ] (inj₁ p) = [ inj₁ (inject s p) ]
 inject {S `+ T} [ inj₂ t ] (inj₂ p) = [ inj₂ (inject t p) ]
 inject {S `* T} [ s , t ] (p₁ , p₂) = [ (inject s p₁ , inject t p₂) ]
+
+⟨_⟩ : ∀ {A B : Type} (a : ⟦ A ⟧) {a∶B : T (maybeToBool (val a as B))} → ⟦ B ⟧
+⟨_⟩ a {a∶B} = inject a (toWit a∶B)
 
 --------------------------------------------------------------------------------
 
@@ -83,7 +92,9 @@ one : ⟦ `3 ⟧
 one = [ inj₁ [ tt ] ]
 
 two : ⟦ `3 ⟧
-two with val one as `2
-... | just p = [ inj₂ (inject one p) ]
-... | nothing  = [ inj₂ [ inj₁ [ tt ] ] ]
+two =  [ inj₂ ⟨ one ⟩ ]
+
+three : ⟦ `3 ⟧
+three = [ inj₂ [ inj₂ [ tt ] ] ]
+
 
