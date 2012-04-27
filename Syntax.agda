@@ -3,7 +3,11 @@ open import Data.Empty
 open import Data.Unit
 open import Data.Sum
 open import Data.Product
+open import Data.Maybe
 open import Relation.Binary.PropositionalEquality
+
+infix 1 _∶_
+infix 2 _as_
 
 data Type : Set where
   `0 `1 : Type
@@ -14,42 +18,60 @@ data Value : Set where
   inj₁ inj₂ : (x : Value) → Value
   _,_ : (x y : Value) → Value
 
-data Types : Value → Type → Set where
-  tt : Types tt `1
+data _∶_ : Value → Type → Set where
+  tt : tt ∶ `1
   inj₁ : ∀ {s S T} →
-    Types s S →
-    Types (inj₁ s) (S `+ T)
+    s ∶ S →
+    inj₁ s ∶ S `+ T
   inj₂ : ∀ {S t T} →
-    Types t T →
-    Types (inj₂ t) (S `+ T)
+    t ∶ T →
+    inj₂ t ∶ S `+ T
   _,_ : ∀ {s S t T} →
-    Types s S → Types t T →
-    Types (s , t) (S `* T)
+    s ∶ S → t ∶ T →
+    s , t ∶ S `* T
 
 El : Type → Set
+data ⟦_⟧ (F : Type) : Set
+
 El `0 = ⊥
 El `1 = ⊤
-El (S `+ T) = El S ⊎ El T
-El (S `* T) = El S × El T
+El (S `+ T) = ⟦ S ⟧ ⊎ ⟦ T ⟧
+El (S `* T) = ⟦ S ⟧ × ⟦ T ⟧
 
-val : {F : Type} → El F → Value
-val {`0} ()
-val {`1} tt = tt
-val {S `+ T} (inj₁ x) = inj₁ (val {S} x)
-val {S `+ T} (inj₂ y) = inj₂ (val {T} y)
-val {S `* T} (x , y) = val {S} x , val {T} y
+data ⟦_⟧ F where
+  [_] : (x : El F) → ⟦ F ⟧
 
-data ⟦_⟧ (F : Type) : Value → Set where
-  [_] : (x : El F) → ⟦ F ⟧ (val {F} x)
+val : {F : Type} → ⟦ F ⟧ → Value
+val {`0} [ () ]
+val {`1} [ tt ] = tt
+val {S `+ T} [ inj₁ x ] = inj₁ (val x)
+val {S `+ T} [ inj₂ y ] = inj₂ (val y)
+val {S `* T} [ x , y ] = val x , val y
 
--- infer : val to Types
+_as_ : (s : Value) (S : Type) → Maybe (s ∶ S)
+tt as `1 = just tt
+tt as _ = nothing
+inj₁ s as S `+ T with s as S
+... | just ih = just (inj₁ ih)
+... | nothing = nothing
+inj₁ s as _ = nothing
+inj₂ t as S `+ T with t as T
+... | just ih = just (inj₂ ih)
+... | nothing = nothing
+inj₂ t as _ = nothing
+s , t as S `* T with s as S | t as T
+... | just ih₁ | just ih₂ = just (ih₁ , ih₂)
+... | _ | _ = nothing
+s , t as _ = nothing
 
-inject : ∀ {S T : Type} (s : El S) → Types (val {S} s) T → El T
-inject {`0} () p
-inject {`1} tt tt = tt
-inject {S `+ T} (inj₁ s) (inj₁ p) = inj₁ (inject s p)
-inject {S `+ T} (inj₂ t) (inj₂ p) = inj₂ (inject t p)
-inject {S `* T} (s , t) (p₁ , p₂) = inject s p₁ , inject t p₂
+inject : ∀ {S T : Type} (s : ⟦ S ⟧) → val s ∶ T → ⟦ T ⟧
+inject {`0} [ () ] p
+inject {`1} [ tt ] tt = [ tt ]
+inject {S `+ T} [ inj₁ s ] (inj₁ p) = [ inj₁ (inject s p) ]
+inject {S `+ T} [ inj₂ t ] (inj₂ p) = [ inj₂ (inject t p) ]
+inject {S `* T} [ s , t ] (p₁ , p₂) = [ (inject s p₁ , inject t p₂) ]
+
+--------------------------------------------------------------------------------
 
 `2 : Type
 `2 = `1 `+ `1
@@ -57,9 +79,11 @@ inject {S `* T} (s , t) (p₁ , p₂) = inject s p₁ , inject t p₂
 `3 : Type
 `3 = `1 `+ `2
 
-one : El `3
-one = inj₁ tt
+one : ⟦ `3 ⟧
+one = [ inj₁ [ tt ] ]
 
-two : El `3
-two = inj₂ (inject {`3} {`2} one (inj₁ tt))
+two : ⟦ `3 ⟧
+two with val one as `2
+... | just p = [ inj₂ (inject one p) ]
+... | nothing  = [ inj₂ [ inj₁ [ tt ] ] ]
 
