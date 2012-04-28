@@ -93,6 +93,10 @@ lift {m} {n} {S} {T} {U} {V} f t =
 ⟨_⟩ : ∀ {n} {S T : Type n} → ⟦ S ⟧ → ⟦ T ⟧
 ⟨_⟩ {S = S} s = lift (λ (x : ⟦ S ⟧) → x) s
 
+∣_∣ :  ∀ {m n} {A : Type m} {B : Type n} (a : ⟦ A ⟧)
+  {p : True (suc (toℕ (toFin a)) ≤? n)} → ⟦ B ⟧
+∣_∣ a {p = p} = inject _ (#_ (toℕ (toFin a)) {m<n = p})
+
 enum : ∀ {n} (F : Type n) → Vec ⟦ F ⟧ n
 enum = tabulate ∘ inject
 
@@ -237,10 +241,6 @@ ThreeR = ⟦ `ThreeR ⟧
 
 --------------------------------------------------------------------------------
 
-∣_∣ :  ∀ {m n} {A : Type m} {B : Type n} (a : ⟦ A ⟧)
-  {p : True (suc (toℕ (toFin a)) ≤? n)} → ⟦ B ⟧
-∣_∣ a {p = p} = inject _ (#_ (toℕ (toFin a)) {m<n = p})
-
 `2 = `1 `+ `1
 `3 = `1 `+ `2
 
@@ -249,5 +249,11 @@ one = [ inj₁ [ tt ] ]
 
 two : ⟦ `3 ⟧
 two = [ inj₂ ∣ one ∣ ]
+
+snd : ⟦ `2 ⟧
+snd = [ inj₂ [ tt ] ]
+
+5:Six′ : ⟦ `Six ⟧
+5:Six′ = [ (∣ snd ∣ , [ inj₁ ∣ snd ∣ ]) ]
 
 
