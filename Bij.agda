@@ -20,6 +20,8 @@ concat {suc m} {zero} zero ()
 concat {suc m} {suc n} zero j = inject+ _ j
 concat {suc m} {n} (suc i) j = raise n (concat i j)
 
+-- Fin is homomorphic with respect to _+_/_⊎_
+-- aka a monoid homomorphism
 case : ∀ {m} {n} → Fin (m + n) → Fin m ⊎ Fin n
 case {zero} {n} i = inj₂ i
 case {suc m} {n} zero = inj₁ zero
@@ -79,6 +81,14 @@ inject (S `+ T) i with case i
 ... | inj₂ k = [ inj₂ (inject T k) ]
 inject (S `* T) i with split i
 ... | j , k = [ (inject S j , inject T k) ]
+
+F₁ : ({n : ℕ} → Set) → Set
+F₁ A = ∀ {n} → A {n} → Fin n
+-- maybe to F₁ : ({n : ℕ} → Set) → {n : ℕ} → Set
+
+postulate
+  fmap₁ : ∀ {m n} {S : Type m} {T : Type n} → 
+    (⟦ S ⟧ → ⟦ T ⟧) → F₁ ⟦ S ⟧ → F₁ ⟦ T ⟧
 
 -- TODO this is like cong, also like fmap but no F
 lift : ∀ {m n} {S T : Type m} {U V : Type n} →
@@ -169,91 +179,6 @@ ValueOrdering S T = Ordering (toFin S) (toFin T)
 
 --------------------------------------------------------------------------------
 
-`Bool = `1 `+ `1
-Bool = ⟦ `Bool ⟧
-
-false : Bool
-false = [ inj₁ [ tt ] ]
-
-true : Bool
-true = [ inj₂ [ tt ] ]
-
-neg : Bool → Bool
-neg [ inj₁ [ tt ] ] = true
-neg [ inj₂ [ tt ] ] = false
-
---------------------------------------------------------------------------------
-
-`Light = `1 `* (`1 `+ `1)
-Light = ⟦ `Light ⟧
-
-off : Light
-off = [ ([ tt ] , [ inj₁ [ tt ] ]) ]
-
-on : Light
-on = [ ([ tt ] , [ inj₂ [ tt ] ]) ]
-
-switch : Light → Light
-switch = ⟪ neg ⟫
-
---------------------------------------------------------------------------------
-
-`ThreeL = (`1 `+ `1) `+ `1
-ThreeL =  ⟦ `ThreeL ⟧
-`ThreeR = `1 `+ (`1 `+ `1)
-ThreeR = ⟦ `ThreeR ⟧
-`Three = `ThreeL
-
-2:ThreeL : ThreeL
-2:ThreeL = [ inj₁ [ inj₂ [ tt ] ] ]
-
-2:ThreeR : ThreeR
-2:ThreeR = [ inj₂ [ inj₁ [ tt ] ] ]
-
-2:ThreeR′ : ThreeR
-2:ThreeR′ = ⟨ 2:ThreeL ⟩
-
-∣2:ThreeL∣≡#2 : (toFin 2:ThreeL) ≡ # 1
-∣2:ThreeL∣≡#2 = refl
-
-2:ThreeL≡⟨2:ThreeR⟩ : 2:ThreeL ≡ ⟨ 2:ThreeR ⟩
-2:ThreeL≡⟨2:ThreeR⟩ = refl
-
-⟨2:ThreeL⟩≡2:ThreeR : ⟨ 2:ThreeL ⟩ ≡ 2:ThreeR
-⟨2:ThreeL⟩≡2:ThreeR = refl
-
---------------------------------------------------------------------------------
-
-`Six = (`1 `+ `1) `* `Three
-`Six₂ = `Three `+ `Three
-
-5:Six : ⟦ `Six ⟧
-5:Six = [ ([ inj₂ [ tt ] ] , [ inj₁ [ inj₂ [ tt ] ] ]) ]
-
-5:Six₂ : ⟦ `Six₂ ⟧
-5:Six₂ = [ inj₂ [ inj₁ [ inj₂ [ tt ] ] ] ]
-
-∣5:Six∣≡#4 : (toFin 5:Six) ≡ # 4
-∣5:Six∣≡#4 = refl
-
-5:Six≡⟨5:Six₂⟩ : 5:Six ≡ ⟨ 5:Six₂ ⟩
-5:Six≡⟨5:Six₂⟩ = refl
-
---------------------------------------------------------------------------------
-
-`2 = `1 `+ `1
-`3 = `1 `+ `2
-
-one : ⟦ `3 ⟧
-one = [ inj₁ [ tt ] ]
-
-two : ⟦ `3 ⟧
-two = [ inj₂ ∣ one ∣ ]
-
-snd : ⟦ `2 ⟧
-snd = [ inj₂ [ tt ] ]
-
-5:Six′ : ⟦ `Six ⟧
-5:Six′ = [ (∣ snd ∣ , [ inj₁ ∣ snd ∣ ]) ]
-
-
+postulate
+  comm : ∀ x y → x + y ≡ y + x
+  comm₂ : ∀ (A : Set) n → (xs : Vec A n) (ys : Vec A n) → xs ++ ys ≡ ys ++ xs
