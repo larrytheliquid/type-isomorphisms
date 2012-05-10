@@ -10,15 +10,19 @@ infix 1 `μ_
 data Ind : Set where
   `0 `1 `x : Ind
   _`+_ _`*_ : (S T : Ind) → Ind
+  `[_] : (R : Ind) → Ind
 
 El : Ind → Set → Set
+data μ (R : Ind) : Set
+
 El `0 X = ⊥
 El `1 X = ⊤
 El `x X = X
 El (S `+ T) X = El S X ⊎ El T X
 El (S `* T) X = El S X × El T X
+El `[ R ] X = μ R
 
-data μ (R : Ind) : Set where
+data μ R where
   [_] : El R (μ R) → μ R
 
 data Type : Set
