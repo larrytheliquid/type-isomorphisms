@@ -65,3 +65,9 @@ data Type where
   `f : ⟦ `nat ⟧ → Ind
   `f [ inj₁ tt ] = `⊤
   `f [ inj₂ n ] = `⊤ `× `f n
+
+`vec : Ind → Type
+`vec A = `Π `nat (λ x → `μ `f x) where
+  `f : ⟦ `nat ⟧ → Ind
+  `f [ inj₁ tt ] = `⊤
+  `f [ inj₂ n ] = `[ A ] `× `f n
