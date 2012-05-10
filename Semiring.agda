@@ -41,16 +41,19 @@ toFin `1 = zero
 toFin (S `+ T) = plus (toFin S) (toFin T)
 toFin (S `* T) = times (toFin S) (toFin T)
 
-sound : ∀ {n} → (R : Semiring n) → toℕ R ≡ n
-sound `1 = refl
-sound (S `+ T) rewrite sound S | sound T = refl
-sound (S `* T) rewrite sound S | sound T = refl
+soundℕ : ∀ {n} (R : Semiring n) → toℕ R ≡ n
+soundℕ `1 = refl
+soundℕ (S `+ T) rewrite soundℕ S | soundℕ T = refl
+soundℕ (S `* T) rewrite soundℕ S | soundℕ T = refl
 
-sound₂ : ∀ {n} → (S T : Semiring n) → toℕ S ≡ toℕ T
-sound₂ S T rewrite sound S | sound T = refl
+soundℕ₂ : ∀ {n} (S T : Semiring n) → toℕ S ≡ toℕ T
+soundℕ₂ S T rewrite soundℕ S | soundℕ T = refl
 
-postulate
-  toℕ[x]≡n : ∀ {n} → (R : Semiring n) → toℕ R ≡ n
++-comm : ∀ {m n} (S : Semiring m) (T : Semiring n) →
+  S `+ T ≡ T `+ S
++-comm S T = ?
+
+--------------------------------------------------------------------------------
 
 toVec : ∀ {n} → Semiring n → Vec ⊤ n
 -- toVec `0 = []
@@ -58,10 +61,8 @@ toVec `1 = tt ∷ []
 toVec (S `+ T) = toVec S ++ toVec T
 toVec (S `* T) = concat (map (λ _ → toVec T) (toVec S))
 
--- toFin : ∀ {n} {F : Semiring n} → ⟦ toVec F ⟧ → Fin n
--- toFin {F = `0} x = {!!}
--- toFin {F = `1} x = zero
--- toFin {F = S `+ T} x with toFin {F = S} [] | toFin {F = T} []
--- ... | xs | ys = {!!}
--- toFin {F = S `* T} x = {!!} -- times (toFin {F = S} []) (toFin {F = T} [])
+-- soundFin : ∀ {n} → (R : Semiring n) → toVec R ≡ replicate tt
+-- soundFin `1 = refl
+-- soundFin (S `+ T) rewrite soundFin S | soundFin T = {!!}
+-- soundFin (S `* T) rewrite soundFin S | soundFin T = {!!}
 
