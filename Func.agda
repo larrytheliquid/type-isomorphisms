@@ -8,18 +8,18 @@ open import Data.Product
 infix 1 `μ_
 
 data Ind : Set where
-  `0 `1 `x : Ind
-  _`+_ _`*_ : (S T : Ind) → Ind
+  `⊥ `⊤ `x : Ind
+  _`⊎_ _`×_ : (S T : Ind) → Ind
   `[_] : (R : Ind) → Ind
 
 El : Ind → Set → Set
 data μ (R : Ind) : Set
 
-El `0 X = ⊥
-El `1 X = ⊤
+El `⊥ X = ⊥
+El `⊤ X = ⊤
 El `x X = X
-El (S `+ T) X = El S X ⊎ El T X
-El (S `* T) X = El S X × El T X
+El (S `⊎ T) X = El S X ⊎ El T X
+El (S `× T) X = El S X × El T X
 El `[ R ] X = μ R
 
 data μ R where
@@ -36,10 +36,10 @@ data Type where
 ⟦ `μ R ⟧ =  μ R
 
 `bool : Type
-`bool = `μ `1 `+ `1
+`bool = `μ `⊤ `⊎ `⊤
 
 `nat : Type
-`nat = `μ `1 `+ `x
+`nat = `μ `⊤ `⊎ `x
 
 `zero : ⟦ `nat ⟧
 `zero = [ inj₁ tt ]
@@ -53,10 +53,15 @@ data Type where
 `fin : Type
 `fin = `Π `nat (λ x → `μ `f x) where
   `f : ⟦ `nat ⟧ → Ind
-  `f [ inj₁ tt ] = `0
-  `f [ inj₂ n ] = `1 `+ `f n
+  `f [ inj₁ tt ] = `⊥
+  `f [ inj₂ n ] = `⊤ `⊎ `f n
 
--- `fin′ : ⟦ `nat ⟧ → Ind
--- `fin′ [ inj₁ tt ] = `0
--- `fin′ [ inj₂ n ] = `1 `+ `fin′ n
+`fin′ : ⟦ `nat ⟧ → Ind
+`fin′ [ inj₁ tt ] = `⊥
+`fin′ [ inj₂ n ] = `⊤ `⊎ `fin′ n
 
+`vec⊤ : Type
+`vec⊤ = `Π `nat (λ x → `μ `f x) where
+  `f : ⟦ `nat ⟧ → Ind
+  `f [ inj₁ tt ] = `⊤
+  `f [ inj₂ n ] = `⊤ `× `f n
