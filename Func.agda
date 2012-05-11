@@ -29,10 +29,11 @@ data Type : Set
 ⟦_⟧ : Type → Set
 
 data Type where
-  `Π : (S : Type)(T : ⟦ S ⟧ → Type) → Type
+  `Π `Σ : (S : Type)(T : ⟦ S ⟧ → Type) → Type
   `μ_ : (R : Ind) → Type
 
 ⟦ `Π S T ⟧ =  (s : ⟦ S ⟧) → ⟦ T s ⟧
+⟦ `Σ S T ⟧ =  Σ[ s ∶ ⟦ S ⟧ ] ⟦ T s ⟧
 ⟦ `μ R ⟧ =  μ R
 
 `bool : Type
