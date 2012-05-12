@@ -5,6 +5,10 @@ open import Data.Nat
 open import Data.Sum
 open import Data.Product
 
+_^_ : ℕ → ℕ → ℕ
+m ^ zero = 1
+m ^ suc n = m * (m ^ n)
+
 data Type : ℕ → Set
 El : ∀ {n} → Type n → Set
 
@@ -12,7 +16,8 @@ data Type where
   `⊥ : Type 0
   `⊤ : Type 1
   _`⊎_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m + n)
-  _`×_ _`→_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m * n)
+  _`×_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m * n)
+  _`→_ : ∀ {m n} (S : Type n) (T : Type m) → Type (m ^ n)
   -- `Π : ∀ {m n} (S : Type m)(T : El S → Type n) → Type 0
   -- `Σ : ∀ {m n} (S : Type m) (T : El S → Type n) → Type 0
 
@@ -27,7 +32,7 @@ El (S `→ T) = El S → El T
 `bool : Type 2
 `bool = `⊤ `⊎ `⊤
 
-`light : Type 2
+`light : Type 1
 `light = `bool `→ `⊤
 
 `on+off : El `light
