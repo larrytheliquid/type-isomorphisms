@@ -17,24 +17,27 @@ data Type where
   `⊤ : Type 1
   _`⊎_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m + n)
   _`×_ : ∀ {m n} (S : Type m) (T : Type n) → Type (m * n)
-  _`→_ : ∀ {m n} (S : Type n) (T : Type m) → Type (m ^ n)
-  -- `Π : ∀ {m n} (S : Type m)(T : El S → Type n) → Type 0
+  _`→_ : ∀ {m n} (S : Type m) (T : Type n) → Type (n ^ m)
   -- `Σ : ∀ {m n} (S : Type m) (T : El S → Type n) → Type 0
+  `Σ : ∀ {m} (S : Type m) (f : El S → ℕ) (T : (m′ : El S) → Type (f m′)) → Type 0
+  -- `Σ : ∀ {m} (S : Type m) (T : El S → Σ ℕ λ n → Type n) → Type 0
+  `Π : ∀ {m} (S : Type m) (T : El S → Σ ℕ λ n → Type n) → Type 0
 
 El `⊥ = ⊥
 El `⊤ = ⊤
 El (S `⊎ T) = El S ⊎ El T
 El (S `× T) = El S × El T
 El (S `→ T) = El S → El T
--- El (`Π S T) = (s : El S) → El (T s)
--- El (`Σ S T) = Σ[ s ∶ El S ] El (T s)
+El (`Σ S f T) = {!!}
+-- El (`Σ S T) = Σ[ s ∶ El S ] El (proj₂ (T s))
+El (`Π S T) = (s : El S) → El (proj₂ (T s))
 
 `bool : Type 2
 `bool = `⊤ `⊎ `⊤
 
-`light : Type 1
-`light = `bool `→ `⊤
+`unit : Type 1
+`unit = `bool `→ `⊤
 
-`on+off : El `light
-`on+off (inj₁ tt) = tt
-`on+off (inj₂ tt) = tt
+`tt : El `unit
+`tt (inj₁ tt) = tt
+`tt (inj₂ tt) = tt

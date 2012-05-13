@@ -49,9 +49,9 @@ soundℕ (S `* T) rewrite soundℕ S | soundℕ T = refl
 soundℕ₂ : ∀ {n} (S T : Semiring n) → toℕ S ≡ toℕ T
 soundℕ₂ S T rewrite soundℕ S | soundℕ T = refl
 
-+-comm : ∀ {m n} (S : Semiring m) (T : Semiring n) →
-  S `+ T ≡ T `+ S
-+-comm S T = ?
+-- +-comm : ∀ {m n} (S : Semiring m) (T : Semiring n) →
+--   S `+ T ≡ T `+ S
+-- +-comm S T = ?
 
 --------------------------------------------------------------------------------
 

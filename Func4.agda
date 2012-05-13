@@ -7,21 +7,34 @@ open import Data.Product
 
 
 data Type : Set where
-  `⊥ `⊤ `x : Type
+  `⊥ `⊤ `X : Type
   _`⊎_ _`×_ _`→_ : (S T : Type) → Type
 
 El : Type → Set → Set
-data μ (R : Type) : Set
+-- data μ (R : Type) : Set
 
 El `⊥ X = ⊥
 El `⊤ X = ⊤
-El `x X = X
+El `X X = X
 El (S `⊎ T) X = El S X ⊎ El T X
 El (S `× T) X = El S X × El T X
 El (S `→ T) X = El S X → El T X
 
-data μ R where
-  [_] : El R (μ R) → μ R
+-- data μ R where
+--   [_] : El R (μ R) → μ R
+
+`nat : Type
+`nat = `⊤ `⊎ `X
+
+`fin : Type
+`fin = `nat `→ (`⊤ `⊎ `X)
+
+`fzero+fsuc : El `fin ⊥
+`fzero+fsuc (inj₁ tt) = inj₁ tt
+`fzero+fsuc (inj₂ ())
+
+-- `suc : El `nat Type
+-- `suc = ?
 
 
 
