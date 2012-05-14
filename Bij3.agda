@@ -67,11 +67,17 @@ count (`Σ S T) = count S * Σ[ S ⊢ (λ s → count (T s)) ]
 `odd (inj₂ (inj₂ (inj₁ tt))) = `⊥
 `odd (inj₂ (inj₂ (inj₂ tt))) = `⊤
 
-2even : El (`even `2)
-2even = tt
+`even2 : Type
+`even2 = `even `2
 
-3odd : El (`odd `3)
-3odd = tt
+`odd3 : Type
+`odd3 = `odd `3
+
+even2⇔odd3 : count `even2 ≡ count `odd3
+even2⇔odd3 = refl
+
+even2⇔one : count `even2 ≡ count `⊤
+even2⇔one = refl
 
 `∃even : Type
 `∃even = `Σ `four `even
