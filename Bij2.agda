@@ -18,18 +18,14 @@ map f (x ∷ xs) = f x ∷ map f xs
 
 sum : ∀ {n} → Vec ℕ n → ℕ
 sum [] = 0
-sum (x ∷ xs) = x + sum xs
-
-postulate
-  lemma : {n : ℕ}{A : Set} (f : A → ℕ) (a : A) (xs : Vec A n) →
-    f a ≡ (sum (map f xs))
+sum (x ∷ xs) = sum xs + x
 
 data Type : ℕ → Set
 El : ∀ {n} → Type n → Set
-enum : ∀ {n} (R : Type n) → Vec (El R) n
-
 Σ[_] : ∀ {m} {S : Type m} (f : El S → Σ ℕ Type) → ℕ
-Σ[_] {S = S} f = sum (map (λ s → proj₁ (f s)) (enum S))
+enum : ∀ {n} (R : Type n) → Vec (El R) n
+lemma : ∀ {n} → (S : Type n) (T : El S → Σ ℕ Type) (s : El S) →
+  (proj₁ (T s)) ≡ (sum (map (λ s' → proj₁ (T s')) (enum S)))
 
 data Type where
   `⊥ : Type 0
@@ -49,30 +45,37 @@ El (S `× T) = El S × El T
 El (`Σ S T) = Σ[ s ∶ El S ] El (proj₂ (T s))
 -- El (`Π S T) = (s : El S) → El (proj₂ (T s))
 
--- postulate
---   lemma : ∀ {n} → (s : Type n) (t : El s)
---     (proj₁ (T s)) != (sum (map (λ s → proj₁ (T s)) (enum S)))
+Σ[_] {S = S} f = sum (map (λ s → proj₁ (f s)) (enum S))
 
 enum `⊥ = []
 enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (`Σ S T) = {!!}
-  where
-  -- f : (s : El S) → Vec (El (proj₂ (T s))) (proj₁ (T s))
-  -- f s = enum (proj₂ (T s))
+enum (`Σ S T) = concat (map f3 (enum S)) where
+  -- concat (map (λ s → map (_,_ s) (enum (proj₂ (T s))) ) (enum S))
 
-  -- concat (map {!f2!} (enum S))
   -- goal = El S       → Vec (Σ (El S) (λ s' → El (proj₂ (T s'))))    (sum (map (λ s → proj₁ (T s)) (enum S)))
   -- have = (s : El S) → Vec (Σ (El S) (λ s' → El (proj₂ (T s'))))    (                proj₁ (T s)           )
 
+  -- f : (s : El S) → Vec (El (proj₂ (T s))) (proj₁ (T s))
+  -- f s = enum (proj₂ (T s))
+
   f2 : (s : El S) → Vec (Σ (El S) (λ s' → El (proj₂ (T s')))) (proj₁ (T s))
   f2 s = map (_,_ s) (enum (proj₂ (T s)))
+
+  f3 : El S → Vec (Σ (El S) (λ s → El (proj₂ (T s)))) (sum (map (λ s → proj₁ (T s)) (enum S)))
+  f3 s rewrite sym (lemma S T s) = f2 s
 -- enum (`Σ S T) = concat (map {!!} (enum S)) where
 --   f : (s : El S) → Vec (El (proj₂ (T s))) (Σ[_] {S = S} T)
 --   f s = {!!} -- enum (proj₂ (T s))
 
-
+lemma `⊥ T ()
+lemma `⊤ T tt = refl
+lemma (S `⊎ T) F (inj₁ x) with lemma S (λ x → F (inj₁ x)) x
+... | ih rewrite ih = {!!}
+lemma (S `⊎ T) F (inj₂ y) = {!!}
+lemma (S `× T) F (x , y) = {!!}
+lemma (`Σ S T) F s = {!!}
 
 
 
