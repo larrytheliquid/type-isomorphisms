@@ -5,7 +5,7 @@ open import Data.Nat
 open import Data.Sum hiding ( map )
 open import Data.Product hiding ( map )
 open import Data.Fin hiding ( _+_ )
-open import Data.Vec
+open import Data.Vec hiding ( [_] )
 open import Relation.Binary.PropositionalEquality
 
 _^_ : ℕ → ℕ → ℕ
@@ -18,6 +18,8 @@ graph : ∀ {m n} {A B : Set} →
       Vec (Vec (A × B) m) (n ^ m)
 graph [] ys = [] ∷ []
 graph (x ∷ xs) ys = concat (map (λ y → map (_∷_ (x , y)) (graph xs ys)) ys)
+
+--------------------------------------------------------------------------------
 
 data Type : Set
 El : Type → Set
@@ -43,6 +45,15 @@ postulate toFin : {R : Type} → El R → Fin (count R)
 
 toλ : ∀ {S T} → Vec (El S × El T) (count S) → El S → El T
 toλ {S} xys x = proj₂ (lookup (toFin {S} x) xys)
+
+wut : ∀ {S T} → Vec (El T) (count S) → El S → El T
+wut {`⊥} ys ()
+wut {`⊤} (x ∷ []) tt = x
+wut {S `⊎ T} {T′} ys (inj₁ a) = wut {S} {T′} (take (count S) ys) a
+wut {S `⊎ T} {T′} ys (inj₂ b) = wut {T} {T′} (drop (count S) ys) b
+wut {S `× T} {T′} ys (a , b) with group (count S) (count T) ys
+wut {S `× T} .(concat xss) (a , b) | xss , refl = {!!} -- wut (concat xss) (a , b)
+wut {S `→ T} {T′} ys x = {!!}
 
 enum : (R : Type) → Vec (El R) (count R)
 enum `⊥ = []
