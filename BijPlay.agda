@@ -12,9 +12,6 @@ _^_ : ℕ → ℕ → ℕ
 m ^ zero = 1
 m ^ suc n = m * (m ^ n)
 
--- graph [] (1 ∷ 2 ∷ 3 ∷ [])
--- graph (1 ∷ []) (2 ∷ 3 ∷ 4 ∷ [])
--- graph (1 ∷ 2 ∷ []) (3 ∷ 4 ∷ 5 ∷ [])
 graph : ∀ {m n} {A B : Set} →
       (Vec A m) →
       (Vec B n) →
@@ -24,7 +21,6 @@ graph (x ∷ xs) ys = concat (map (λ y → map (_∷_ (x , y)) (graph xs ys)) y
 
 data Type : Set
 El : Type → Set
-count : Type → ℕ
 
 data Type where
   `⊥ `⊤ : Type
@@ -34,8 +30,9 @@ El `⊥ = ⊥
 El `⊤ = ⊤
 El (S `⊎ T) = El S ⊎ El T
 El (S `× T) = El S × El T
-El (S `→ T) = Vec (El S × El T) (count S)
+El (S `→ T) = El S → El T
 
+count : Type → ℕ
 count `⊥ = 0
 count `⊤ = 1
 count (S `⊎ T) = count S + count T
@@ -44,11 +41,14 @@ count (S `→ T) = count T ^ count S
 
 postulate toFin : {R : Type} → El R → Fin (count R)
 
+toλ : ∀ {S T} → Vec (El S × El T) (count S) → El S → El T
+toλ {S} xys x = proj₂ (lookup (toFin {S} x) xys)
+
 enum : (R : Type) → Vec (El R) (count R)
 enum `⊥ = []
 enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (S `→ T) with enum S | enum T
-... | xs | ys = graph xs ys
+enum (S `→ T) = map (toλ {S} {T}) (graph (enum S) (enum T))
+
 
