@@ -1,3 +1,4 @@
+{-# OPTIONS --no-positivity-check #-}
 module BijPlay where
 open import Data.Empty
 open import Data.Unit
@@ -23,6 +24,7 @@ graph (x ∷ xs) ys = concat (map (λ y → map (_∷_ (x , y)) (graph xs ys)) y
 
 data Type : Set
 El : Type → Set
+data ⟦_⟧ (R : Type) : Set
 
 data Type where
   `⊥ `⊤ : Type
@@ -30,9 +32,12 @@ data Type where
 
 El `⊥ = ⊥
 El `⊤ = ⊤
-El (S `⊎ T) = El S ⊎ El T
-El (S `× T) = El S × El T
-El (S `→ T) = El S → El T
+El (S `⊎ T) = ⟦ S ⟧ ⊎ ⟦ T ⟧
+El (S `× T) = ⟦ S ⟧ × ⟦ T ⟧
+El (S `→ T) = ⟦ S ⟧ → ⟦ T ⟧
+
+data ⟦_⟧ R where
+  [_] : El R → ⟦ R ⟧
 
 count : Type → ℕ
 count `⊥ = 0
@@ -41,25 +46,22 @@ count (S `⊎ T) = count S + count T
 count (S `× T) = count S * count T
 count (S `→ T) = count T ^ count S
 
-postulate toFin : {R : Type} → El R → Fin (count R)
+toλ : ∀ {S T} → Vec ⟦ T ⟧ (count S) → ⟦ S ⟧ → ⟦ T ⟧
+toλ {`⊥} ys [ () ]
+toλ {`⊤} (x ∷ []) [ tt ] = x
+toλ {S `⊎ T} ys [ inj₁ a ] = toλ (take (count S) ys) a
+toλ {S `⊎ T} ys [ inj₂ b ] = toλ (drop (count S) ys) b
+toλ {S `× T} ys [ a , b ] with group (count S) (count T) ys
+... | xss , p = toλ (map (λ xs → toλ xs b) xss) a
+toλ {S `→ T} ys [ x ] = {!!}
 
-toλ : ∀ {S T} → Vec (El S × El T) (count S) → El S → El T
-toλ {S} xys x = proj₂ (lookup (toFin {S} x) xys)
-
-wut : ∀ {S T} → Vec (El T) (count S) → El S → El T
-wut {`⊥} ys ()
-wut {`⊤} (x ∷ []) tt = x
-wut {S `⊎ T} {T′} ys (inj₁ a) = wut {S} {T′} (take (count S) ys) a
-wut {S `⊎ T} {T′} ys (inj₂ b) = wut {T} {T′} (drop (count S) ys) b
-wut {S `× T} {T′} ys (a , b) with group (count S) (count T) ys
-wut {S `× T} .(concat xss) (a , b) | xss , refl = {!!} -- wut (concat xss) (a , b)
-wut {S `→ T} {T′} ys x = {!!}
-
-enum : (R : Type) → Vec (El R) (count R)
+enum : (R : Type) → Vec ⟦ R ⟧ (count R)
 enum `⊥ = []
-enum `⊤ = tt ∷ []
-enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
-enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (S `→ T) = map (toλ {S} {T}) (graph (enum S) (enum T))
+enum `⊤ = [ tt ] ∷ []
+enum (S `⊎ T) = map (λ s → [ inj₁ s ]) (enum S) ++ map (λ t → [ inj₂ t ]) (enum T)
+enum (S `× T) = concat (map (λ s → map (λ t → [ (s , t) ]) (enum T)) (enum S))
+enum (S `→ T) with graph (enum S) (enum T)
+... | hm = map (λ g → [ toλ (map proj₂ g) ]) hm
+
 
 
