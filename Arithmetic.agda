@@ -69,6 +69,6 @@ enum `⊥ = []
 enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (S `→ T) = ? -- map (λ ts s → lookup ts (proj₂ (toFin {S} s))) (image (count S) (enum T))
+enum (S `→ T) = {!!} -- map (λ ts s → lookup ts (proj₂ (toFin {S} s))) (image (count S) (enum T))
 
 

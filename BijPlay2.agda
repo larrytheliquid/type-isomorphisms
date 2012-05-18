@@ -37,6 +37,8 @@ postulate
   wut : ∀ {m n} {A : Set} →
     Vec (Vec (Vec A m) m) n → Vec A (n ^ m)
 
+  cluster : ∀ {m n} {A : Set} → Vec A (n ^ m) → Vec (Vec A n) m
+
 --------------------------------------------------------------------------------
 
 data Type : Set
@@ -79,7 +81,8 @@ toλ {S `× S₂} {T} ys [ a , b ] with group (count S) (count S₂) ys
 ... | hm = {!!}
 toλ {S `→ S₂} {T} ys [ f ] with enum S
 ... | ss with map f ss
-... | ss' = {!!}
+... | ss' with cluster {count S} {count S₂} ys
+... | clust = {!!}
 
 -- need: Vec (Vec ⟦ T ⟧ (count S)) (count S₂)
 
