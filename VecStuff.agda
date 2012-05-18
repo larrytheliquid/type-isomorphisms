@@ -24,15 +24,19 @@ m ^ zero = 1
 m ^ suc n = m * (m ^ n)
 -- container vec is m, and recursion is its contents
 
-exp : ∀ {m} {A : Set} →
-      (Vec A m) →
-      (n : ℕ) →
-      Vec (Vec A m) (m ^ n)
-exp xs zero = xs ∷ []
-exp xs (suc n) = concat (map (λ _ → exp xs n) xs)
+image : ∀ {n} {A : Set} →
+      (m : ℕ) →
+      (Vec A n) →
+      Vec (Vec A m) (n ^ m)
+image zero xs = [] ∷ []
+image (suc n) xs = concat (map (λ x → map (_∷_ x) (image n xs)) xs)
 
--- maybe pass an A and nest a function taking A's?
--- exp [] = (λ()) ∷ []
--- exp (x ∷ xs) = {!!}
+wut : ∀ {m n} {A : Set} →
+  A → Vec (Vec A m) n → Vec A (n ^ m)
+wut a [] = {!!}
+wut a (x ∷ xs) = {!!}
 
 
+-- group : ∀ {A : Set} m n (xs : Vec A (m * n)) → Vec (Vec A n) m
+
+-- cluster : ∀ {A : Set} m n (xs : Vec A (n ^ m)) → Vec (Vec A k) n
