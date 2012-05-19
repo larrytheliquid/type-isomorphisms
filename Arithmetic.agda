@@ -55,20 +55,20 @@ count (S `⊎ T) = count S + count T
 count (S `× T) = count S * count T
 count (S `→ T) = count T ^ count S
 
-toFin : {R : Type} → El R → ∃ Fin
+toFin : {R : Type} → El R → Fin (count R)
 enum : (R : Type) → List (El R)
 
 toFin {`⊥} ()
-toFin {`⊤} tt = 1 , zero
-toFin {S `⊎ T} (inj₁ x) = _ , inject+ (count T) (proj₂ (toFin {S} x))
-toFin {S `⊎ T} (inj₂ y) = _ , raise (count S) (proj₂ (toFin {T} y))
-toFin {S `× T} (x , y) = _ , fconcat (proj₂ (toFin {S} x)) (proj₂ (toFin {T} y))
-toFin {S `→ T} f = {!!} -- fimage (map (λ t → {!proj₂ (toFin {T} t)!}) (map f (enum S)))
+toFin {`⊤} tt = zero
+toFin {S `⊎ T} (inj₁ x) = inject+ (count T) (toFin {S} x)
+toFin {S `⊎ T} (inj₂ y) = raise (count S) (toFin {T} y)
+toFin {S `× T} (x , y) = fconcat (toFin {S} x) (toFin {T} y)
+toFin {S `→ T} f = {!!} -- fimage (map (λ t → {! toFin {T} t !}) (map f (enum S)))
 
 enum `⊥ = []
 enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (S `→ T) = {!!} -- map (λ ts s → lookup ts (proj₂ (toFin {S} s))) (image (count S) (enum T))
+enum (S `→ T) = map (λ ts s → lookup ts {!toFin {S} s!}) (image (count S) (enum T))
 
 
