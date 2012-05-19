@@ -52,6 +52,10 @@ count (S `× T) = count S * count T
 count (`Σ S T) = sum (map (λ s → count (T s)) (enum S))
 -- count (`Π S T) = Σ* S [ (λ s → count (T s)) ]
 
+postulate
+  correctness : ∀ {S T} →
+    length (enum (`Σ S T)) ≡ sum (map (λ s → count (T s)) (enum S))
+
 --------------------------------------------------------------------------------
 
 `two : Type

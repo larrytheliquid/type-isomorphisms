@@ -8,9 +8,15 @@ open import Data.Vec
 open import Relation.Binary.PropositionalEquality
 open ≡-Reasoning
 
-_^_ : ℕ → ℕ → ℕ
-m ^ zero = 1
-m ^ suc n = m * (m ^ n)
+sumWith : ∀ {n} {A : Set} → (A → ℕ) → Vec A n → ℕ
+sumWith f [] = zero
+sumWith f (x ∷ xs) = f x + sumWith f xs
+
+postulate
+  Πconcat : ∀ {n} {A : Set} {B : A → Set} →
+    (f : A → ℕ) (xs : Vec A n) (ys : (a : A) →
+    Vec (B a) (f a)) →
+    Vec (Σ A B) (sumWith f xs)
 
 data Type : Set
 El : Type → Set
@@ -33,27 +39,13 @@ count `⊥ = 0
 count `⊤ = 1
 count (S `⊎ T) = count S + count T
 count (S `× T) = count S * count T
-count (`Σ S T) = count S * sum (map (λ s → count (T s)) (enum S))
-
-postulate
-  cheat : ∀ {S} {T : El S → Type} → (s : El S) →
-    (count (T s)) ≡ (sum (map (λ s → count (T s)) (enum S)))
-
-lemma : ∀ {S} {T : El S → Type} → (s : El S) →
-  Vec (Σ[ s₁ ∶ El S ] El (T s₁)) (count (T s)) →
-  Vec (Σ[ s₁ ∶ El S ] El (T s₁)) (sum (map (λ s → count (T s)) (enum S)))
-lemma {S} {T} s xs rewrite cheat {S} {T} s = xs
+count (`Σ S T) = sumWith (λ s → count (T s)) (enum S)
 
 enum `⊥ = []
 enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (`Σ S T) = concat (map (λ s → lemma {S} {T} s (map (_,_ s) (enum (T s)))) (enum S))
--- concat (map (λ s → {!!}) (enum S))
--- (map (λ s → {!(map (_,_ s) (enum (T s)))!}) (enum S))
--- enum (`Σ S T) = concat (map (λ s → lemma {S} {T} s (map (_,_ s) (enum (T s)))) (enum S))
--- with map (λ s → enum (T s)) (enum S)
--- ... | hm = ?
+enum (`Σ S T) = Πconcat (λ s → count (T s)) (enum S) (λ s → enum (T s))
 
 --------------------------------------------------------------------------------
 
