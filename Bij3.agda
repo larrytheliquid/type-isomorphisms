@@ -40,16 +40,22 @@ enum (`Σ S T) = concat (map (λ s → map (_,_ s) (enum (T s))) (enum S))
 Σ*_[_] : (R : Type) (f : El R → ℕ) → ℕ
 Σ* R [ f ] = product (map f (enum R))
 
+count′ : Type → ℕ
+count′ R = length (enum R)
+
 count : Type → ℕ
 count `⊥ = 0
 count `⊤ = 1
 count (S `⊎ T) = count S + count T
 count (S `× T) = count S * count T
 -- count (S `→ T) = count S ^ count T
-count (`Σ S T) = count S * Σ+ S [ (λ s → count (T s)) ]
--- count (`Π S T) = count S ^ Σ* S [ (λ s → count (T s)) ]
+count (`Σ S T) = sum (map (λ s → count (T s)) (enum S))
+-- count (`Π S T) = Σ* S [ (λ s → count (T s)) ]
 
 --------------------------------------------------------------------------------
+
+`two : Type
+`two = `⊤ `⊎ `⊤
 
 `four : Type
 `four = `⊤ `⊎ (`⊤ `⊎ (`⊤ `⊎ `⊤))
@@ -99,7 +105,7 @@ even2⇔one = refl
 ∃even⇔∃odd : count `∃even ≡ count `∃odd
 ∃even⇔∃odd = refl
 
-∃even⇔eight : count `∃even ≡ count `eight
+∃even⇔eight : count `∃even ≡ count `two
 ∃even⇔eight = refl
 
 ∃even : El `∃even
