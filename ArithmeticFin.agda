@@ -14,8 +14,8 @@ fconcat {suc m} {zero} zero ()
 fconcat {suc m} {suc n} zero j = inject+ _ j
 fconcat {suc m} {n} (suc i) j = raise n (fconcat i j)
 
-∣Σ∣ : ∀ {n} {B : ℕ → Set} (f : Fin n → ∃ B) → ℕ
-∣Σ∣ {n} f = sum (map proj₁ (map f (allFin n)))
+∣Σ∣ : ∀ {n} (f : Fin n → ℕ) → ℕ
+∣Σ∣ {n} f = sum (map f (allFin n))
 
 --------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ data Type : ℕ → Set where
 
   `Σ : ∀ {m} →
     (S : Type m) (T : Fin m → ∃ Type) →
-    Type (∣Σ∣ T)
+    Type (∣Σ∣ λ s → proj₁ (T s))
 
 El : ∀ {n} → Type n → Set
 El `⊥ = ⊥
@@ -42,13 +42,14 @@ El (S `⊎ T) = El S ⊎ El T
 El (S `× T) = El S × El T
 El (`Σ {n} S T) = Σ[ i ∶ Fin n ] El (proj₂ (T i))
 
--- toFin : {R : Type n} → El R → Fin n
--- toFin {`⊥} ()
--- toFin {`⊤} tt = zero
--- toFin {S `⊎ T} (inj₁ x) = inject+ (count T) (toFin {S} x)
--- toFin {S `⊎ T} (inj₂ y) = raise (count S) (toFin {T} y)
--- toFin {S `× T} (x , y) = fconcat (toFin {S} x) (toFin {T} y)
--- toFin {`Σ S T} (x , y) = ?
+toFin : ∀ {n} {R : Type n} → El R → Fin n
+toFin {R = `⊥} ()
+toFin {R = `⊤} tt = zero
+toFin {R = S `⊎ T} (inj₁ s) = inject+ _ (toFin {R = S} s)
+toFin {R = _`⊎_ {m} S T} (inj₂ t) = raise m (toFin {R = T} t)
+toFin {R = S `× T} (s , t) = fconcat (toFin {R = S} s) (toFin {R = T} t)
+toFin {R = `Σ S T} (s , t) with toFin {R = proj₂ (T s)} t
+... | ih = {!!}
 
 --------------------------------------------------------------------------------
 
