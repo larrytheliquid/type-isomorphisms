@@ -8,15 +8,18 @@ open import Data.Vec
 open import Relation.Binary.PropositionalEquality
 open ≡-Reasoning
 
-sumWith : ∀ {n} {A : Set} → (A → ℕ) → Vec A n → ℕ
-sumWith f [] = zero
-sumWith f (x ∷ xs) = f x + sumWith f xs
+Σ* : ∀ {n} {A : Set} → (A → ℕ) → Vec A n → ℕ
+Σ* f [] = zero
+Σ* f (x ∷ xs) = f x + Σ* f xs
 
-postulate
-  Πconcat : ∀ {n} {A : Set} {B : A → Set} →
-    (f : A → ℕ) (xs : Vec A n) (ys : (a : A) →
-    Vec (B a) (f a)) →
-    Vec (Σ A B) (sumWith f xs)
+Σconcat : ∀ {n} {A : Set} {B : A → Set} →
+  (f : A → ℕ) (xs : Vec A n) (g : (a : A) →
+  Vec (B a) (f a)) →
+  Vec (Σ A B) (Σ* f xs)
+Σconcat f [] g = []
+Σconcat f (x ∷ xs) g = (map (_,_ x) (g x)) ++ Σconcat f xs g
+
+--------------------------------------------------------------------------------
 
 data Type : Set
 El : Type → Set
@@ -39,13 +42,13 @@ count `⊥ = 0
 count `⊤ = 1
 count (S `⊎ T) = count S + count T
 count (S `× T) = count S * count T
-count (`Σ S T) = sumWith (λ s → count (T s)) (enum S)
+count (`Σ S T) = Σ* (λ s → count (T s)) (enum S)
 
 enum `⊥ = []
 enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
-enum (`Σ S T) = Πconcat (λ s → count (T s)) (enum S) (λ s → enum (T s))
+enum (`Σ S T) = Σconcat (λ s → count (T s)) (enum S) (λ s → enum (T s))
 
 --------------------------------------------------------------------------------
 
