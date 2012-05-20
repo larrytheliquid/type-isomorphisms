@@ -8,16 +8,16 @@ open import Data.Vec
 open import Relation.Binary.PropositionalEquality
 open ≡-Reasoning
 
-Σ* : ∀ {n} {A : Set} → (A → ℕ) → Vec A n → ℕ
-Σ* f [] = zero
-Σ* f (x ∷ xs) = f x + Σ* f xs
+Σ+ : ∀ {n} {A : Set} → Vec A n → (A → ℕ) → ℕ
+Σ+ [] f = zero
+Σ+ (x ∷ xs) f = f x + Σ+ xs f
 
 Σconcat : ∀ {n} {A : Set} {B : A → Set} →
   (f : A → ℕ) (xs : Vec A n) (g : (a : A) →
   Vec (B a) (f a)) →
-  Vec (Σ A B) (Σ* f xs)
+  Vec (Σ A B) (Σ+ xs f)
 Σconcat f [] g = []
-Σconcat f (x ∷ xs) g = (map (_,_ x) (g x)) ++ Σconcat f xs g
+Σconcat f (x ∷ xs) g = map (_,_ x) (g x) ++ Σconcat f xs g
 
 --------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ count `⊥ = 0
 count `⊤ = 1
 count (S `⊎ T) = count S + count T
 count (S `× T) = count S * count T
-count (`Σ S T) = Σ* (λ s → count (T s)) (enum S)
+count (`Σ S T) = Σ+ (enum S) (λ s → count (T s))
 
 enum `⊥ = []
 enum `⊤ = tt ∷ []
