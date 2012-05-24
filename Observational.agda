@@ -73,4 +73,32 @@ El (`W S T) = W (El S) λ s → El (T s)
 `zero = `false , λ ()
 
 `suc : El `ℕ → El `ℕ
-`suc n = `true , λ _ → n
+`suc n = `true , λ { tt → n }
+
+`Three : Type
+`Three = `⊤ `⊎ `Bool
+
+`ℕ₂ : Type
+`ℕ₂ = `W `Three f where
+  f : El `Three → Type
+  f (inj₁ tt) = `⊥
+  f (inj₂ (inj₁ tt)) = `⊤
+  f (inj₂ (inj₂ tt)) = `⊤
+
+`left : El `ℕ₂ → El `ℕ₂
+`left n = inj₂ (inj₁ tt) , λ { tt → n }
+
+`right : El `ℕ₂ → El `ℕ₂
+`right n = inj₂ (inj₂ tt) , λ { tt → n }
+
+`Tree : Type
+`Tree = `W `Bool (λ b → `if b then `Bool else `⊥)
+
+`leaf : El `Tree
+`leaf = `false , λ()
+
+`node : El `Tree → El `Tree → El `Tree
+`node l r = `true , f where
+  f : El `Bool → El `Tree
+  f (inj₁ tt) = l
+  f (inj₂ tt) = r

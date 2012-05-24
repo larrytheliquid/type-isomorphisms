@@ -30,8 +30,8 @@ data W (S : Set) (T : S → Set) : Set where
 data Type : ℕ → ℕ → Set
 El : ∀ {n x} → Type n x → Set
 postulate
-  enum : ∀ {n x} (R : Type n x) → Vec (El R) n
-  enum₂ : ∀ {n x} (R : Type n x) → Uncurry x (El R) → El R
+  enum : ∀ {n x} (R : Type n x) → Vec (El R) n -- axioms
+  enum₂ : ∀ {n x} (R : Type n x) → Uncurry x (El R) → El R -- inference rules
 
 data Type where
   `⊥ : Type 0 0 
