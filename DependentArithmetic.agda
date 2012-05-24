@@ -34,6 +34,18 @@ fimage (x ∷ xs) = fconcat x (fimage xs)
 Σfconcat f (x ∷ xs) zero j = inject+ (Σ+ xs f) j
 Σfconcat f (x ∷ xs) (suc i) j = raise (f x) (Σfconcat f xs i j)
 
+lemma : ∀ {n} {A : Set} (a : A) (toFin : A → Fin n) (xs : Vec A n) →
+  a ≡ lookup (toFin a) xs
+lemma a toFin [] with toFin a
+... | ()
+lemma a toFin (x ∷ xs) = {!-c!}
+
+geez : {A : Set}
+  (a : A) (f g : A → ℕ) (toFin : A → Fin (g a)) (xs : Vec A (g a))
+  (j : Fin (f a)) →
+  Fin (Σ+ xs f)
+geez a f g toFin xs j = {!Σfconcat f xs (toFin a) j!}
+
 image : ∀ {n} {A : Set}
   (m : ℕ) → (Vec A n) →
   Vec (Vec A m) (n ^ m)
@@ -75,18 +87,21 @@ count (S `× T) = count S * count T
 count (S `→ T) = count T ^ count S
 count (`Σ S T) = Σ+ (enum S) (λ s → count (T s))
 
-postulate
-  grr : ∀ {n} {A : Set}
-    (f : A → ℕ) (a : A) (xs : Vec A n)
-    (i : Fin n) (j : Fin (f a)) →
-    Fin (Σ+ xs f)
+-- grrr : ∀ {n} {A : Set}
+--   (a : A) (i : Fin n) (xs : Vec A n) →
+--   a ≡ lookup i xs
+-- grrr x zero (x₁ ∷ xs) = {!!}
+-- grrr x (suc i) xs = {!!}
 
--- grr f a [] () j
--- grr f a (x ∷ xs) zero j with f a
--- grr f a (x ∷ xs) zero () | zero
--- grr f a (x ∷ xs) zero j | suc _ with grr f a xs {!zero {_}!} _
--- ... | ih = {!!} -- raise (f x) ih
--- grr f a (x ∷ xs) (suc i) j = {!!}
+-- ugh : {S : Type}
+--   (s : El S) (i : Fin (count S)) (p : toFin {S} s ≡ i) (xs : Vec (El S) (count S)) →
+--   s ≡ lookup i xs
+-- ugh {S} s i p xs = {!!}
+
+-- wtf : {S : Type}
+--   (Fin n)
+--   s ≡ lookup i xs
+-- wtf = ?
 
 toFin {`⊥} ()
 toFin {`⊤} tt = zero
@@ -95,7 +110,9 @@ toFin {S `⊎ T} (inj₂ t) = raise (count S) (toFin {T} t)
 toFin {S `× T} (s , t) = fconcat (toFin {S} s) (toFin {T} t)
 toFin {S `→ T} f = fimage (map (λ s → toFin {T} (f s)) (enum S))
 toFin {`Σ S T} (s , t) with enum S | toFin {S} s | toFin {T s} t
-... | xs | i | j = {!!} -- grr (λ x → (count (T x))) s xs i j
+... | xs | i | j = {!!}
+-- rewrite grrr {A = El S} s i xs =
+--   Σfconcat (λ x → (count (T x))) xs i (toFin {T (lookup i xs)} t)
 
 enum `⊥ = []
 enum `⊤ = tt ∷ []
