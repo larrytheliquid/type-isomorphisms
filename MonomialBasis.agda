@@ -7,6 +7,12 @@ open import Data.Product hiding ( map )
 open import Data.List
 open import Relation.Binary.PropositionalEquality
 
+1+x : List ℕ
+1+x = 1 ∷ 2 ∷ []
+
+3+8x : List ℕ
+3+8x = 3 ∷ 8 ∷ []
+
 data W (S : Set) (T : S → Set) : Set where
   _,_ : (s : S) → (T s → W S T) → W S T
 
@@ -15,6 +21,18 @@ combine : (ℕ → ℕ → ℕ) → List ℕ → List ℕ → List ℕ
 combine f [] ys = ys
 combine f xs [] = xs
 combine f (x ∷ xs) (y ∷ ys) = f x y ∷ combine f xs ys
+
+infixl 6 _[+]_
+infixl 7 _[*]_
+
+_[+]_ : List ℕ → List ℕ → List ℕ
+[] [+] ys = ys
+xs [+] [] = xs
+(x ∷ xs) [+] (y ∷ ys) = x + y ∷ xs [+] ys
+
+_[*]_ : List ℕ → List ℕ → List ℕ
+[] [*] ys = []
+(x ∷ xs) [*] ys = map (_*_ x) ys [+] xs [*] (zero ∷ ys)
 
 poly : (xs : List ℕ) → List ℕ
 poly [] = []
