@@ -16,6 +16,14 @@ open import Relation.Binary.PropositionalEquality
 3+8x : List ℕ
 3+8x = 3 ∷ 8 ∷ []
 
+Curry : ℕ → Set → Set
+Curry zero A = A
+Curry (suc n) A = A → Curry n A
+
+Cons : Set → List ℕ → Set
+Cons A [] = ⊤
+Cons A (x ∷ xs) = Cons A xs × Curry (length (x ∷ xs)) A
+
 data W (S : Set) (T : S → Set) : Set where
   _,_ : (s : S) → (T s → W S T) → W S T
 
@@ -48,6 +56,7 @@ data Type where
   `⊥ `⊤ : Type
   _`⊎_ _`×_ : (S T : Type) → Type
   `Σ : (S : Type)(T : El S → Type) → Type
+  -- `Σ : (S : Type)(T : ((El S ⊎ (El S → El S)) → Type) → Type
 
 El `⊥ = ⊥
 El `⊤ = ⊤
@@ -61,6 +70,13 @@ enum `⊤ = tt ∷ []
 enum (S `⊎ T) = map inj₁ (enum S) ++ map inj₂ (enum T)
 enum (S `× T) = concat (map (λ s → map (_,_ s) (enum T)) (enum S))
 enum (`Σ S T) = Σconcat (enum S) (λ s → enum (T s))
+
+-- enum₂ : (R : Type) → List (El R → El R)
+-- enum₂ `⊥ = (λ()) ∷ []
+-- enum₂ `⊤ = (λ {tt → tt}) ∷ []
+-- enum₂ (R `⊎ R₁) = {!!}
+-- enum₂ (R `× R₁) = {!!}
+-- enum₂ (`Σ R T) = {!!}
 
 mon : Type → List ℕ
 mon `⊥ = 0 ∷ []
