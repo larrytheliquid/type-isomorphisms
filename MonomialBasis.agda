@@ -7,6 +7,9 @@ open import Data.Product hiding ( map )
 open import Data.List
 open import Relation.Binary.PropositionalEquality
 
+0+x : List ℕ
+0+x = 0 ∷ 2 ∷ []
+
 1+x : List ℕ
 1+x = 1 ∷ 2 ∷ []
 
@@ -16,15 +19,6 @@ open import Relation.Binary.PropositionalEquality
 data W (S : Set) (T : S → Set) : Set where
   _,_ : (s : S) → (T s → W S T) → W S T
 
--- zipWith but preserve longer list
-combine : (ℕ → ℕ → ℕ) → List ℕ → List ℕ → List ℕ
-combine f [] ys = ys
-combine f xs [] = xs
-combine f (x ∷ xs) (y ∷ ys) = f x y ∷ combine f xs ys
-
-infixl 6 _[+]_
-infixl 7 _[*]_
-
 _[+]_ : List ℕ → List ℕ → List ℕ
 [] [+] ys = ys
 xs [+] [] = xs
@@ -32,11 +26,7 @@ xs [+] [] = xs
 
 _[*]_ : List ℕ → List ℕ → List ℕ
 [] [*] ys = []
-(x ∷ xs) [*] ys = map (_*_ x) ys [+] xs [*] (zero ∷ ys)
-
-poly : (xs : List ℕ) → List ℕ
-poly [] = []
-poly (x ∷ xs) = {!!}
+(x ∷ xs) [*] ys = map (_*_ x) ys [+] (xs [*] (zero ∷ ys))
 
 --------------------------------------------------------------------------------
 
@@ -75,10 +65,10 @@ count (`W S T) with map (λ s → count (T s)) (enum S)
 mon : Type → List ℕ
 mon `⊥ = 0 ∷ []
 mon `⊤ = 1 ∷ []
-mon (S `⊎ T) = combine _+_ (mon S) (mon T)
-mon (S `× T) = combine _*_ (mon S) (mon T)
+mon (S `⊎ T) = mon S [+] mon T
+mon (S `× T) = mon S [*] mon T
 mon (`Σ S T) with map (λ s → mon (T s)) (enum S)
-... | ih = foldr (combine _+_) [] ih
+... | ih = foldr _[+]_ [] ih
 mon (`W S T) with map (λ s → mon (T s)) (enum S)
 ... | ih = {!!}
 
