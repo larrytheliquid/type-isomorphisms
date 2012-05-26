@@ -75,6 +75,10 @@ El (`W S T) = W (El S) λ s → El (T s)
 `suc : El `ℕ → El `ℕ
 `suc n = `true , λ { tt → n }
 
+`plus : El `ℕ → El `ℕ → El `ℕ
+`plus (inj₁ tt , m) n = `suc (`plus (m tt) n)
+`plus (inj₂ tt , _) n = n
+
 `Three : Type
 `Three = `⊤ `⊎ `Bool
 
