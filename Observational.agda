@@ -79,6 +79,12 @@ El (`W S T) = W (El S) λ s → El (T s)
 `plus (inj₁ tt , m) n = `suc (`plus (m tt) n)
 `plus (inj₂ tt , _) n = n
 
+`Even : El `ℕ → Type
+`Even (inj₁ tt , m) with m tt
+... | inj₁ tt , f = `Even (f tt)
+... | inj₂ tt , f = `⊥
+`Even (inj₂ tt , _) = `⊤
+
 `Three : Type
 `Three = `⊤ `⊎ `Bool
 
