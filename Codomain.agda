@@ -55,10 +55,20 @@ El (`W S Ts F) = W (El S) λ s → El (proj₁ (F s))
 `∃even = `Σ `four `evenImg `even
 
 `ℕImg : List Type
-`ℕImg = `⊤ ∷ `⊥ ∷ []
+`ℕImg = `⊥ ∷ `⊤ ∷ []
 
 `ℕ : Type
 `ℕ = `W `Bool `ℕImg f where
   f : El `Bool → ∃ λ T → T ∈ `ℕImg
-  f (inj₁ tt) = `⊤ , here
-  f (inj₂ tt) = `⊥ , there here
+  f (inj₁ tt) = `⊥ , here
+  f (inj₂ tt) = `⊤ , there here
+
+`EvenImg : List Type
+`EvenImg = `⊥ ∷ `⊤ ∷ []
+
+`Even : El `ℕ → ∃ λ T → T ∈ `EvenImg
+`Even (inj₁ tt , _) = `⊤ , there here
+`Even (inj₂ tt , f) with f tt
+... | inj₁ tt , _ = `⊥ , here
+... | inj₂ tt , f' = `Even (f' tt)
+
