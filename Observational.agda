@@ -44,15 +44,15 @@ El (`W S T) = W (El S) λ s → El (T s)
 `Bool : Type
 `Bool = `⊤ `⊎ `⊤
 
-`true : El `Bool
-`true = inj₁ tt
-
 `false : El `Bool
-`false = inj₂ tt
+`false = inj₁ tt
+
+`true : El `Bool
+`true = inj₂ tt
 
 `if_then_else_ : El `Bool → Type → Type → Type
-`if inj₁ tt then x else y = x
-`if inj₂ tt then x else y = y
+`if inj₁ tt then x else y = y
+`if inj₂ tt then x else y = x
 
 `T : (b : El `Bool) → Type
 `T b = `if b then `⊤ else `⊥
@@ -60,11 +60,11 @@ El (`W S T) = W (El S) λ s → El (T s)
 `Light : Type
 `Light = `W `Bool (λ _ → `⊥)
 
-`on : El `Light
-`on = `true , λ()
-
 `off : El `Light
 `off = `false , λ()
+
+`on : El `Light
+`on = `true , λ()
 
 `ℕ : Type
 `ℕ = `W `Bool `T
@@ -76,14 +76,14 @@ El (`W S T) = W (El S) λ s → El (T s)
 `suc n = `true , λ { tt → n }
 
 `plus : El `ℕ → El `ℕ → El `ℕ
-`plus (inj₁ tt , m) n = `suc (`plus (m tt) n)
-`plus (inj₂ tt , _) n = n
+`plus (inj₁ tt , _) n = n
+`plus (inj₂ tt , m) n = `suc (`plus (m tt) n)
 
 `Even : El `ℕ → Type
-`Even (inj₁ tt , m) with m tt
-... | inj₁ tt , f = `Even (f tt)
-... | inj₂ tt , f = `⊥
-`Even (inj₂ tt , _) = `⊤
+`Even (inj₁ tt , _) = `⊤
+`Even (inj₂ tt , m) with m tt
+... | inj₁ tt , f = `⊥
+... | inj₂ tt , f = `Even (f tt)
 
 `Three : Type
 `Three = `⊤ `⊎ `Bool
