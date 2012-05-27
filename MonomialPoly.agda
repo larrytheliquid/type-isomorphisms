@@ -18,24 +18,43 @@ _[*]_ : List ℕ → List ℕ → List ℕ
 
 --------------------------------------------------------------------------------
 
-data Type : Set where
-  `⊥ `⊤ `X : Type
-  _`⊎_ _`×_ : (S T : Type) → Type
+data Type : List ℕ → Set where
+  `⊥ : Type (0 ∷ [])
+  `⊤ : Type (1 ∷ [])
+  `X : Type (0 ∷ 1 ∷ [])
+  _`⊎_ : ∀ {xs ys} (S : Type xs) (T : Type ys) → Type (xs [+] ys)
+  _`×_ : ∀ {xs ys} (S : Type xs) (T : Type ys) → Type (xs [*] ys)
 
-El : Type → Set → Set
+El : ∀ {xs} → Type xs → Set → Set
 El `⊥ X = ⊥
 El `⊤ X = ⊤
 El (S `⊎ T) X = El S X ⊎ El T X
 El (S `× T) X = El S X × El T X
 El `X X = X
 
-data μ (F : Type) : Set where
-  [_] : El F (μ F) → μ F
+data μ {xs} (R : Type xs) : Set where
+  [_] : El R (μ R) → μ R
 
-mon : Type → List ℕ
-mon `⊥ = 0 ∷ []
-mon `⊤ = 1 ∷ []
-mon (S `⊎ T) = mon S [+] mon T
-mon (S `× T) = mon S [*] mon T
-mon `X = 0 ∷ 1 ∷ []
+--------------------------------------------------------------------------------
+
+`Bool : Type (2 ∷ [])
+`Bool = `⊤ `⊎ `⊤
+
+`ℕ : Type (1 ∷ 1 ∷ [])
+`ℕ = `⊤ `⊎ `X
+
+`zero : μ `ℕ
+`zero = [ inj₁ tt ]
+
+`suc : μ `ℕ → μ `ℕ
+`suc n = [ inj₂ n ]
+
+`Tree : Type (1 ∷ 0 ∷ 1 ∷ [])
+`Tree = `⊤ `⊎ (`X `× `X)
+
+`leaf : μ `Tree
+`leaf = [ inj₁ tt ]
+
+`node : μ `Tree → μ `Tree → μ `Tree
+`node l r = [ inj₂ (l , r) ]
 
