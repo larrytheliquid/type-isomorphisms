@@ -58,3 +58,11 @@ data μ {xs} (R : Type xs) : Set where
 `node : μ `Tree → μ `Tree → μ `Tree
 `node l r = [ inj₂ (l , r) ]
 
+`ℕ⊎Tree : Type (2 ∷ 1 ∷ 1 ∷ [])
+`ℕ⊎Tree = `ℕ `⊎ `Tree
+
+`ℕ×Tree : Type (1 ∷ 1 ∷ 1 ∷ 1 ∷ [])
+`ℕ×Tree = `ℕ `× `Tree
+
+`Tree×Tree : Type (1 ∷ 0 ∷ 2 ∷ 0 ∷ 1 ∷ [])
+`Tree×Tree = `Tree `× `Tree
