@@ -27,15 +27,19 @@ data Type : List ℕ → Set where
   `X : Type (0 ∷ 1 ∷ [])
   _`⊎_ : ∀ {xs ys} (S : Type xs) (T : Type ys) → Type (xs [+] ys)
   _`×_ : ∀ {xs ys} (S : Type xs) (T : Type ys) → Type (xs [*] ys)
+  `μ : ∀ {xs} → Type xs → Type xs
 
 El : ∀ {xs} → Type xs → Set → Set
+data μ {xs} (R : Type xs) : Set
+
 El `⊥ X = ⊥
 El `⊤ X = ⊤
 El (S `⊎ T) X = El S X ⊎ El T X
 El (S `× T) X = El S X × El T X
 El `X X = X
+El (`μ R) X = μ R
 
-data μ {xs} (R : Type xs) : Set where
+data μ {xs} R where
   [_] : El R (μ R) → μ R
 
 --------------------------------------------------------------------------------
@@ -62,13 +66,13 @@ data μ {xs} (R : Type xs) : Set where
 `node l r = [ inj₂ (l , r) ]
 
 `ℕ⊎Tree : Type (2 ∷ 1 ∷ 1 ∷ [])
-`ℕ⊎Tree = `ℕ `⊎ `Tree
+`ℕ⊎Tree = `μ `ℕ `⊎ `μ `Tree
 
 `ℕ×Tree : Type (1 ∷ 1 ∷ 1 ∷ 1 ∷ [])
-`ℕ×Tree = `ℕ `× `Tree
+`ℕ×Tree = `μ `ℕ `× `μ `Tree
 
 `Tree×Tree : Type (1 ∷ 0 ∷ 2 ∷ 0 ∷ 1 ∷ [])
-`Tree×Tree = `Tree `× `Tree
+`Tree×Tree = `μ `Tree `× `μ `Tree
 
 `Tree×Tree₂ : Type (1 ∷ 0 ∷ 2 ∷ 0 ∷ 1 ∷ [])
 `Tree×Tree₂ = `⊤ `⊎ (`X `× `X `⊎ `X `× `X) `⊎ (`X `× `X `× `X `× `X)
