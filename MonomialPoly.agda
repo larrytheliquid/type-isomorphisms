@@ -18,6 +18,9 @@ _[*]_ : List ℕ → List ℕ → List ℕ
 
 --------------------------------------------------------------------------------
 
+infixl 6 _`⊎_
+infixl 7 _`×_
+
 data Type : List ℕ → Set where
   `⊥ : Type (0 ∷ [])
   `⊤ : Type (1 ∷ [])
@@ -50,7 +53,7 @@ data μ {xs} (R : Type xs) : Set where
 `suc n = [ inj₂ n ]
 
 `Tree : Type (1 ∷ 0 ∷ 1 ∷ [])
-`Tree = `⊤ `⊎ (`X `× `X)
+`Tree = `⊤ `⊎ `X `× `X
 
 `leaf : μ `Tree
 `leaf = [ inj₁ tt ]
@@ -66,3 +69,6 @@ data μ {xs} (R : Type xs) : Set where
 
 `Tree×Tree : Type (1 ∷ 0 ∷ 2 ∷ 0 ∷ 1 ∷ [])
 `Tree×Tree = `Tree `× `Tree
+
+`Tree×Tree₂ : Type (1 ∷ 0 ∷ 2 ∷ 0 ∷ 1 ∷ [])
+`Tree×Tree₂ = `⊤ `⊎ (`X `× `X `⊎ `X `× `X) `⊎ (`X `× `X `× `X `× `X)
